@@ -300,8 +300,8 @@ export default function CounselorReports() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">This Month's Entries</p>
-                  <p className="text-2xl font-semibold text-black">{monthlyEntries.length}</p>
+                  <p className="text-sm font-medium text-gray-600">Selected Month Entries</p>
+                  <p className="text-2xl font-semibold text-black">{selectedMonthEntries.length}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-sage-600" />
               </div>
@@ -312,7 +312,7 @@ export default function CounselorReports() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Average Happiness</p>
+                  <p className="text-sm font-medium text-gray-600">Average Happiness This Month</p>
                   <p className="text-2xl font-semibold text-black">{averageHappiness}/10</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-sage-600" />
@@ -324,8 +324,8 @@ export default function CounselorReports() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Current Streak</p>
-                  <p className="text-2xl font-semibold text-black">{currentStreak} days</p>
+                  <p className="text-sm font-medium text-gray-600">Longest Streak</p>
+                  <p className="text-2xl font-semibold text-black">{longestStreak} days</p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-sage-600" />
               </div>
@@ -337,31 +337,29 @@ export default function CounselorReports() {
   );
 }
 
-function calculateStreak(entries: any[]): number {
+function calculateLongestStreakForMonth(entries: any[]): number {
   if (!entries || entries.length === 0) return 0;
   
   const sortedEntries = entries
     .map(entry => new Date(entry.date))
-    .sort((a, b) => b.getTime() - a.getTime());
+    .sort((a, b) => a.getTime() - b.getTime());
   
-  let streak = 0;
-  let currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
+  let longestStreak = 0;
+  let currentStreak = 1;
   
-  for (const entryDate of sortedEntries) {
-    const entryDateNormalized = new Date(entryDate);
-    entryDateNormalized.setHours(0, 0, 0, 0);
+  for (let i = 1; i < sortedEntries.length; i++) {
+    const prevDate = sortedEntries[i - 1];
+    const currentDate = sortedEntries[i];
     
-    const diffDays = Math.floor((currentDate.getTime() - entryDateNormalized.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (diffDays === streak) {
-      streak++;
-    } else if (diffDays === streak + 1) {
-      continue;
+    if (diffDays === 1) {
+      currentStreak++;
     } else {
-      break;
+      longestStreak = Math.max(longestStreak, currentStreak);
+      currentStreak = 1;
     }
   }
   
-  return streak;
+  return Math.max(longestStreak, currentStreak);
 }
