@@ -303,8 +303,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
               placeholder="What's on your mind today? Share your thoughts, experiences, and reflections..."
               className="min-h-[200px] resize-none border-beige-300 focus:ring-sage-500 focus:border-sage-500"
             />
-            <div className="flex justify-between items-center mt-2">
-              <p className="text-xs text-gray-600">No word limit - write as much as you'd like</p>
+            <div className="flex justify-end items-center mt-2">
               <p className="text-xs text-gray-600">{wordCount} words</p>
             </div>
             {form.formState.errors.content && (

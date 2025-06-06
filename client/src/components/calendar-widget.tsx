@@ -146,7 +146,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
               >
                 <span>{day.date}</span>
                 {hasEntry && !isSelected && (
-                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-sage-400 rounded-full"></div>
+                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-sage-400 rounded-full"></div>
                 )}
               </Button>
             );
@@ -155,15 +155,9 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
         
         {/* Legend */}
         <div className="mt-4 pt-4 border-t border-beige-300">
-          <div className="flex items-center justify-between text-xs text-gray-600">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-sage-400 rounded-full mr-2"></div>
-              <span>Has Entry</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-sage-500 rounded-full mr-2"></div>
-              <span>Selected</span>
-            </div>
+          <div className="flex items-center text-xs text-gray-600">
+            <div className="w-1.5 h-1.5 bg-sage-400 rounded-full mr-2"></div>
+            <span>Has Entry</span>
           </div>
         </div>
       </CardContent>

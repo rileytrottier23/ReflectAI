@@ -102,6 +102,28 @@
   }
 }
 
+/* Happiness slider custom styles */
+.happiness-slider [data-orientation="horizontal"] {
+  background: hsl(var(--sage-200));
+}
+
+.happiness-slider [data-orientation="horizontal"] [data-state="checked"] {
+  background: hsl(var(--sage-500));
+}
+
+.happiness-slider .slider-track {
+  background: hsl(var(--sage-200));
+}
+
+.happiness-slider .slider-range {
+  background: hsl(var(--sage-500));
+}
+
+.happiness-slider .slider-thumb {
+  background: hsl(var(--sage-600));
+  border: 2px solid hsl(var(--sage-600));
+}
+
 @layer utilities {
   /* Beige color utilities */
   .beige-50 { color: hsl(var(--beige-50)); }
