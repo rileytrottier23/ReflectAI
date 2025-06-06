@@ -6,12 +6,9 @@ const openai = new OpenAI({
 });
 
 export interface CounselorReport {
-  overallMoodTrend: string;
-  keyInsights: string[];
   recommendations: string[];
-  emotionalPatterns: string;
   monthlyScore: number;
-  summary: string;
+  detailedAnalysis: string;
 }
 
 export async function generateCounselorReport(
@@ -21,12 +18,9 @@ export async function generateCounselorReport(
 ): Promise<CounselorReport> {
   if (!entries || entries.length === 0) {
     return {
-      overallMoodTrend: "No entries available for analysis this month.",
-      keyInsights: ["No journal entries found for this period"],
-      recommendations: ["Start journaling regularly to build insights over time"],
-      emotionalPatterns: "Insufficient data to identify patterns",
+      recommendations: ["Start journaling regularly to build insights over time", "Set a daily reminder to write in your journal"],
       monthlyScore: 0,
-      summary: "No journal data available for analysis"
+      detailedAnalysis: "No journal data available for analysis this month. Begin by writing regular entries to start tracking your emotional journey and building insights over time."
     };
   }
 
@@ -51,15 +45,12 @@ Average happiness score: ${averageHappiness.toFixed(1)}/10
 
 Please provide a comprehensive counselor report in JSON format with the following structure:
 {
-  "overallMoodTrend": "A 2-3 sentence analysis of the person's overall emotional state and mood patterns",
-  "keyInsights": ["3-4 specific insights about emotional patterns, triggers, or positive developments"],
-  "recommendations": ["3-4 actionable recommendations for emotional wellbeing and personal growth"],
-  "emotionalPatterns": "A paragraph describing recurring emotional themes and patterns observed",
+  "recommendations": ["2-4 actionable recommendations focused on positive self-improvement and emotional wellbeing"],
   "monthlyScore": [a score from 1-10 representing overall emotional health this month],
-  "summary": "A warm, encouraging 2-3 sentence summary highlighting progress and potential"
+  "detailedAnalysis": "A detailed 200-500 word analysis of the entries, providing insights, feedback, emotional patterns, mood trends, and constructive observations about the person's emotional journey this month"
 }
 
-Focus on being supportive, professional, and constructive. Highlight both challenges and growth opportunities. Keep language accessible and encouraging.`;
+Focus on being supportive, professional, and constructive. The detailed analysis should be comprehensive yet accessible, highlighting both challenges and growth opportunities. Keep language encouraging and insightful.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -82,12 +73,9 @@ Focus on being supportive, professional, and constructive. Highlight both challe
     const result = JSON.parse(response.choices[0].message.content || "{}");
     
     return {
-      overallMoodTrend: result.overallMoodTrend || "Analysis unavailable",
-      keyInsights: result.keyInsights || ["No insights available"],
-      recommendations: result.recommendations || ["Continue journaling regularly"],
-      emotionalPatterns: result.emotionalPatterns || "No patterns identified",
+      recommendations: result.recommendations || ["Continue journaling regularly", "Focus on consistency in your practice"],
       monthlyScore: Math.max(1, Math.min(10, result.monthlyScore || Math.round(averageHappiness))),
-      summary: result.summary || "Keep up your journaling practice for continued insights"
+      detailedAnalysis: result.detailedAnalysis || "Analysis unavailable for this period. Continue journaling to build insights over time."
     };
 
   } catch (error) {
@@ -95,22 +83,14 @@ Focus on being supportive, professional, and constructive. Highlight both challe
     
     // Fallback response if AI fails
     return {
-      overallMoodTrend: `Based on ${entries.length} entries with an average happiness score of ${averageHappiness.toFixed(1)}/10, your mood this month shows consistency in your journaling practice.`,
-      keyInsights: [
-        `You made ${entries.length} journal entries this month`,
-        `Your average happiness score was ${averageHappiness.toFixed(1)}/10`,
-        "Regular journaling supports emotional awareness",
-        "Consistent reflection helps identify patterns"
-      ],
       recommendations: [
         "Continue your regular journaling practice",
         "Consider exploring themes that emerge in your writing",
         "Notice patterns in your happiness scores",
         "Celebrate your commitment to self-reflection"
       ],
-      emotionalPatterns: "Your commitment to regular journaling demonstrates strong self-awareness and dedication to personal growth.",
       monthlyScore: Math.round(averageHappiness),
-      summary: "Your consistent journaling practice this month shows dedication to self-reflection and emotional awareness. Keep building on this positive foundation."
+      detailedAnalysis: `Based on ${entries.length} journal entries with an average happiness score of ${averageHappiness.toFixed(1)}/10, your journaling practice this month demonstrates consistency and self-awareness. Your commitment to regular reflection shows dedication to personal growth and emotional understanding. This consistent practice provides a foundation for deeper insights and continued emotional development. Keep building on this positive foundation as you continue your journaling journey.`
     };
   }
 }

@@ -11,12 +11,9 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, Calendar, TrendingUp, Brain, Lightbulb, Target, Loader2 } from "lucide-react";
 
 interface CounselorReport {
-  overallMoodTrend: string;
-  keyInsights: string[];
   recommendations: string[];
-  emotionalPatterns: string;
   monthlyScore: number;
-  summary: string;
+  detailedAnalysis: string;
 }
 
 export default function CounselorReports() {
@@ -125,19 +122,19 @@ export default function CounselorReports() {
   };
 
   // Calculate stats from entries
-  const currentMonth = new Date().getMonth() + 1;
-  const currentYear = new Date().getFullYear();
   const allEntries = Array.isArray(entries) ? entries : [];
-  const monthlyEntries = allEntries.filter((entry: any) => {
+  
+  // Stats for selected month (for report generation)
+  const selectedMonthEntries = allEntries.filter((entry: any) => {
     const entryDate = new Date(entry.date);
-    return entryDate.getMonth() + 1 === currentMonth && entryDate.getFullYear() === currentYear;
+    return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === selectedYear;
   });
 
-  const averageHappiness = monthlyEntries.length > 0 
-    ? (monthlyEntries.reduce((sum: number, entry: any) => sum + entry.happinessScore, 0) / monthlyEntries.length).toFixed(1)
+  const averageHappiness = selectedMonthEntries.length > 0 
+    ? (selectedMonthEntries.reduce((sum: number, entry: any) => sum + entry.happinessScore, 0) / selectedMonthEntries.length).toFixed(1)
     : "0.0";
 
-  const currentStreak = calculateStreak(allEntries);
+  const longestStreak = calculateLongestStreakForMonth(selectedMonthEntries);
 
   return (
     <div className="min-h-screen bg-beige-200">
@@ -257,52 +254,18 @@ export default function CounselorReports() {
 
         {/* AI Generated Report */}
         {report && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Overall Summary */}
+          <div className="space-y-8">
+            {/* Detailed Analysis */}
             <Card className="border-beige-300 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle className="font-display text-black flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-sage-600" />
-                  Monthly Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-sage-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sage-800">Emotional Health Score</h4>
-                    <Badge variant="secondary" className="bg-sage-100 text-sage-800">
-                      {report.monthlyScore}/10
-                    </Badge>
-                  </div>
-                  <Progress value={report.monthlyScore * 10} className="h-2 mb-2" />
-                  <p className="text-sm text-sage-700">{report.overallMoodTrend}</p>
-                </div>
-                
-                <div className="p-4 bg-beige-50 rounded-lg">
-                  <h4 className="font-medium text-black mb-2">Summary</h4>
-                  <p className="text-sm text-gray-700">{report.summary}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Key Insights */}
-            <Card className="border-beige-300 bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-black flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-sage-600" />
-                  Key Insights
+                  <Brain className="h-5 w-5 text-sage-600" />
+                  AI Analysis Report
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {report.keyInsights.map((insight, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-sage-50 rounded-lg">
-                      <div className="w-6 h-6 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                        {index + 1}
-                      </div>
-                      <p className="text-sm text-sage-800">{insight}</p>
-                    </div>
-                  ))}
+                <div className="prose prose-sm max-w-none">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{report.detailedAnalysis}</p>
                 </div>
               </CardContent>
             </Card>
@@ -319,27 +282,12 @@ export default function CounselorReports() {
                 <div className="space-y-3">
                   {report.recommendations.map((recommendation, index) => (
                     <div key={index} className="flex items-start gap-3 p-3 bg-beige-50 rounded-lg">
-                      <div className="w-6 h-6 bg-leather-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                      <div className="w-6 h-6 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                         {index + 1}
                       </div>
-                      <p className="text-sm text-leather-800">{recommendation}</p>
+                      <p className="text-sm text-gray-800">{recommendation}</p>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Emotional Patterns */}
-            <Card className="border-beige-300 bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-black flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-sage-600" />
-                  Emotional Patterns
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-sage-50 rounded-lg">
-                  <p className="text-sm text-sage-800">{report.emotionalPatterns}</p>
                 </div>
               </CardContent>
             </Card>
