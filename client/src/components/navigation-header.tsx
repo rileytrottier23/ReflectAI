@@ -18,7 +18,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Sprout className="text-white text-xl mr-3" />
+              <Sprout className="text-white h-8 w-8 mr-3" />
               <h1 className="text-white font-display font-semibold text-xl">ReflectAI</h1>
             </div>
             <div className="flex items-center space-x-4">

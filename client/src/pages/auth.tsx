@@ -49,7 +49,7 @@ export default function Auth() {
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Sprout className="text-sage-600 text-4xl mr-3" />
+            <Sprout className="text-sage-600 h-12 w-12 mr-3" />
             <h1 className="text-4xl font-display font-bold text-black">ReflectAI</h1>
           </div>
           <p className="text-gray-700 text-lg">Your personal journaling companion</p>

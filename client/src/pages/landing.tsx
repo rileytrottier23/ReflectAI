@@ -14,7 +14,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
-              <Sprout className="text-white text-2xl mr-4" />
+              <Sprout className="text-white h-10 w-10 mr-4" />
               <h1 className="text-white font-display font-bold text-3xl">ReflectAI</h1>
             </div>
             <div className="flex items-center space-x-6">
@@ -139,7 +139,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Sprout className="text-white text-2xl mr-3" />
+              <Sprout className="text-white h-8 w-8 mr-3" />
               <span className="font-display font-bold text-white text-2xl">ReflectAI</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-beige-100">
