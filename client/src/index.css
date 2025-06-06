@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 94%; /* #F0F0F0 - pure neutral gray background */
+  --background: 210 20% 98%; /* #F8F9FA - very light cool gray background */
   --foreground: 0 0% 0%; /* #000000 - charcoal black */
-  --muted: 0 0% 92%; /* #EBEBEB - neutral gray light */
+  --muted: 210 20% 95%; /* #F1F3F4 - light cool gray */
   --muted-foreground: 0 0% 20%; /* #333333 - charcoal light */
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 0%;
   --card: 0 0% 100%;
   --card-foreground: 0 0% 0%;
-  --border: 0 0% 85%; /* #D9D9D9 - neutral gray dark */
-  --input: 0 0% 85%;
+  --border: 210 20% 90%; /* #E4E7E9 - cool gray border */
+  --input: 210 20% 90%;
   --primary: 28 35% 48%; /* #A67C52 - leather brown */
   --primary-foreground: 0 0% 100%;
   --secondary: 95 20% 60%; /* #96AB8A - sage green */
   --secondary-foreground: 0 0% 0%;
-  --accent: 0 0% 85%;
+  --accent: 210 20% 90%;
   --accent-foreground: 0 0% 0%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
   --ring: 28 35% 48%;
   --radius: 0.75rem;
   
-  /* Beige variants - completely neutral gray */
-  --beige-50: 0 0% 97%; /* #F7F7F7 */
-  --beige-100: 0 0% 92%; /* #EBEBEB */
-  --beige-200: 0 0% 94%; /* #F0F0F0 */
-  --beige-300: 0 0% 85%; /* #D9D9D9 */
-  --beige-400: 0 0% 80%; /* #CCCCCC */
-  --beige-500: 0 0% 75%; /* #BFBFBF */
-  --beige-600: 0 0% 70%; /* #B3B3B3 */
-  --beige-700: 0 0% 65%; /* #A6A6A6 */
-  --beige-800: 0 0% 55%; /* #8C8C8C */
-  --beige-900: 0 0% 45%; /* #737373 */
+  /* Beige variants - cool neutral tones */
+  --beige-50: 210 20% 98%; /* #F8F9FA */
+  --beige-100: 210 20% 95%; /* #F1F3F4 */
+  --beige-200: 210 20% 93%; /* #EBEEF0 */
+  --beige-300: 210 20% 88%; /* #DDE1E4 */
+  --beige-400: 210 20% 82%; /* #CDD3D7 */
+  --beige-500: 210 20% 76%; /* #BDC5CA */
+  --beige-600: 210 20% 70%; /* #ADB7BD */
+  --beige-700: 210 20% 64%; /* #9DA9B0 */
+  --beige-800: 210 20% 52%; /* #7D8B96 */
+  --beige-900: 210 20% 40%; /* #5D6D7C */
   
   /* Leather brown variants */
   --leather-50: 28 20% 95%; /* #F7F5F2 */
@@ -102,26 +102,24 @@
   }
 }
 
-/* Happiness slider custom styles */
-.happiness-slider [data-orientation="horizontal"] {
-  background: hsl(var(--sage-200));
+/* Happiness slider custom styles - match Save Entry button */
+.happiness-slider [data-radix-slider-track] {
+  background-color: hsl(var(--sage-200)) !important;
 }
 
-.happiness-slider [data-orientation="horizontal"] [data-state="checked"] {
-  background: hsl(var(--sage-500));
+.happiness-slider [data-radix-slider-range] {
+  background-color: hsl(var(--sage-500)) !important;
 }
 
-.happiness-slider .slider-track {
-  background: hsl(var(--sage-200));
+.happiness-slider [data-radix-slider-thumb] {
+  background-color: hsl(var(--sage-500)) !important;
+  border: 2px solid hsl(var(--sage-500)) !important;
+  box-shadow: 0 2px 10px hsl(var(--sage-500) / 0.3) !important;
 }
 
-.happiness-slider .slider-range {
-  background: hsl(var(--sage-500));
-}
-
-.happiness-slider .slider-thumb {
-  background: hsl(var(--sage-500));
-  border: 2px solid hsl(var(--sage-500));
+.happiness-slider [data-radix-slider-thumb]:focus {
+  background-color: hsl(var(--sage-600)) !important;
+  border-color: hsl(var(--sage-600)) !important;
 }
 
 @layer utilities {
