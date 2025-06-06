@@ -47,23 +47,7 @@ export default function Landing() {
               ReflectAI helps you record daily reflections, track your mood, and gain insights through personalized analytics and monthly summaries.
             </p>
             
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-sage-400 rounded-full mr-3"></div>
-                <span className="text-gray-700 font-medium">Daily Journaling</span>
-              </div>
-              <p className="text-sm text-gray-600 ml-5">
-                Record your thoughts and experiences in a beautiful interface
-              </p>
-              
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-sage-400 rounded-full mr-3"></div>
-                <span className="text-gray-700 font-medium">Monthly Reflections</span>
-              </div>
-              <p className="text-sm text-gray-600 ml-5">
-                Get AI-generated insights about your month
-              </p>
-            </div>
+
 
             <Button 
               onClick={handleLogin}
@@ -105,28 +89,44 @@ export default function Landing() {
         <div className="mt-24">
           <h2 className="text-3xl font-display font-semibold text-center text-gray-800 mb-12">Features</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="text-center border-cream-200">
-              <CardHeader>
-                <BookOpen className="w-12 h-12 text-sage-500 mx-auto mb-4" />
-                <CardTitle className="font-display">Daily Journaling</CardTitle>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 text-gray-600" />
+                </div>
+                <CardTitle className="font-display text-lg font-semibold text-gray-900">Daily Journaling</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription>
+              <CardContent className="pt-0">
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
                   Record your thoughts, experiences, and emotions in a beautiful, easy-to-use interface.
                 </CardDescription>
               </CardContent>
             </Card>
             
-
-            
-            <Card className="text-center border-cream-200">
-              <CardHeader>
-                <Star className="w-12 h-12 text-sage-500 mx-auto mb-4" />
-                <CardTitle className="font-display">AI Reflections</CardTitle>
+            <Card className="text-center border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-blue-50 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <TrendingUp className="w-8 h-8 text-blue-500" />
+                </div>
+                <CardTitle className="font-display text-lg font-semibold text-gray-900">Mood Tracking</CardTitle>
               </CardHeader>
-              <CardContent>
-                <CardDescription>
+              <CardContent className="pt-0">
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                  Track your emotional well-being over time with visual charts and statistics.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="w-16 h-16 bg-yellow-50 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <Star className="w-8 h-8 text-yellow-500" />
+                </div>
+                <CardTitle className="font-display text-lg font-semibold text-gray-900">AI Reflections</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <CardDescription className="text-gray-600 text-sm leading-relaxed">
                   Get personalized monthly summaries and insights powered by advanced AI analysis.
                 </CardDescription>
               </CardContent>
