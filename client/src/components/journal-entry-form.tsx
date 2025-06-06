@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -272,23 +271,42 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
               How are you feeling today?
             </Label>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-gray-600">
+              <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
                 <span>Not great</span>
                 <span className="font-medium text-sage-600">{happinessValue[0]}/10</span>
                 <span>Excellent</span>
               </div>
-              <Slider
-                value={happinessValue}
-                onValueChange={handleHappinessChange}
-                max={10}
-                min={1}
-                step={1}
-                className="happiness-slider"
-              />
-              <div className="flex justify-between text-xs text-gray-500">
-                {Array.from({ length: 10 }, (_, i) => (
-                  <span key={i + 1}>{i + 1}</span>
-                ))}
+              
+              {/* Custom happiness bar */}
+              <div className="relative">
+                <div className="w-full bg-beige-300 rounded-full h-4 cursor-pointer" onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const percentage = x / rect.width;
+                  const newValue = Math.max(1, Math.min(10, Math.round(percentage * 10)));
+                  handleHappinessChange([newValue]);
+                }}>
+                  <div 
+                    className="bg-sage-500 h-4 rounded-full transition-all duration-300" 
+                    style={{ width: `${(happinessValue[0] / 10) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      type="button"
+                      onClick={() => handleHappinessChange([i + 1])}
+                      className={`w-6 h-6 rounded-full text-xs font-medium transition-colors ${
+                        happinessValue[0] === i + 1 
+                          ? 'bg-sage-500 text-white' 
+                          : 'bg-beige-200 text-gray-600 hover:bg-beige-300'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -102,31 +102,7 @@
   }
 }
 
-/* Happiness slider custom styles - fully green */
-.happiness-slider [data-radix-slider-track] {
-  background-color: hsl(var(--sage-500)) !important;
-  border: none !important;
-}
 
-.happiness-slider [data-radix-slider-range] {
-  background-color: hsl(var(--sage-500)) !important;
-}
-
-.happiness-slider [data-radix-slider-thumb] {
-  background-color: hsl(var(--sage-500)) !important;
-  border: 2px solid hsl(var(--sage-500)) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-}
-
-.happiness-slider [data-radix-slider-thumb]:hover {
-  background-color: hsl(var(--sage-600)) !important;
-  border-color: hsl(var(--sage-600)) !important;
-}
-
-.happiness-slider [data-radix-slider-thumb]:focus {
-  background-color: hsl(var(--sage-600)) !important;
-  border-color: hsl(var(--sage-600)) !important;
-}
 
 @layer utilities {
   /* Beige color utilities */
