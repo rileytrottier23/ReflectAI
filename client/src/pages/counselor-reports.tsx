@@ -34,7 +34,7 @@ export default function CounselorReports() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-cream-100 flex items-center justify-center">
+      <div className="min-h-screen bg-beige-200 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-500"></div>
       </div>
     );
@@ -62,25 +62,25 @@ export default function CounselorReports() {
   const currentStreak = calculateStreak(entries || []);
 
   return (
-    <div className="min-h-screen bg-cream-100">
+    <div className="min-h-screen bg-beige-200">
       <NavigationHeader currentTab="reports" />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-display font-semibold text-gray-800 mb-2">
+          <h2 className="text-3xl font-display font-semibold text-black mb-2">
             Counselor Reports
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-800">
             Get AI-powered insights and monthly summaries based on your journal entries and mood patterns.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Monthly Report */}
-          <Card className="border-cream-200">
+          <Card className="border-beige-300 bg-white shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="font-display">Monthly Summary</CardTitle>
+                <CardTitle className="font-display text-black">Monthly Summary</CardTitle>
                 <Select defaultValue={`${currentYear}-${currentMonth.toString().padStart(2, '0')}`}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -102,18 +102,18 @@ export default function CounselorReports() {
                 </p>
               </div>
               
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium text-blue-800 mb-2">Key Insights</h4>
-                <ul className="text-sm text-blue-700 space-y-1">
+              <div className="p-4 bg-leather-50 rounded-lg">
+                <h4 className="font-medium text-leather-800 mb-2">Key Insights</h4>
+                <ul className="text-sm text-leather-700 space-y-1">
                   <li>• {monthlyEntries.length} journal entries this month</li>
                   <li>• Regular reflection supports emotional awareness</li>
                   <li>• Consistent tracking helps identify patterns</li>
                 </ul>
               </div>
               
-              <div className="p-4 bg-amber-50 rounded-lg">
-                <h4 className="font-medium text-amber-800 mb-2">Recommendations</h4>
-                <p className="text-sm text-amber-700">
+              <div className="p-4 bg-beige-100 rounded-lg">
+                <h4 className="font-medium text-gray-800 mb-2">Recommendations</h4>
+                <p className="text-sm text-gray-700">
                   {monthlyEntries.length === 0 
                     ? "Start by writing your first journal entry to begin tracking your emotional journey."
                     : "Continue your journaling practice to build deeper insights over time."
@@ -129,17 +129,17 @@ export default function CounselorReports() {
           </Card>
 
           {/* Mood Visualization */}
-          <Card className="border-cream-200">
+          <Card className="border-beige-300 bg-white shadow-sm">
             <CardHeader>
-              <CardTitle className="font-display">Mood Visualization</CardTitle>
+              <CardTitle className="font-display text-black">Mood Visualization</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Average Happiness Score</span>
+                  <span className="text-sm font-medium text-black">Average Happiness Score</span>
                   <span className="text-2xl font-bold text-sage-600">{averageHappiness}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-beige-200 rounded-full h-3">
                   <div 
                     className="bg-sage-500 h-3 rounded-full transition-all duration-300" 
                     style={{ width: `${(parseFloat(averageHappiness) / 10) * 100}%` }}
@@ -149,16 +149,16 @@ export default function CounselorReports() {
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Entries this month</span>
-                  <span className="font-medium text-gray-800">{monthlyEntries.length}</span>
+                  <span className="text-sm text-gray-700">Entries this month</span>
+                  <span className="font-medium text-black">{monthlyEntries.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Current streak</span>
-                  <span className="font-medium text-gray-800">{currentStreak} days</span>
+                  <span className="text-sm text-gray-700">Current streak</span>
+                  <span className="font-medium text-black">{currentStreak} days</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Best day</span>
-                  <span className="font-medium text-gray-800">
+                  <span className="text-sm text-gray-700">Best day</span>
+                  <span className="font-medium text-black">
                     {bestDay 
                       ? `${new Date(bestDay.date).toLocaleDateString()} (${bestDay.happinessScore}/10)`
                       : "No entries yet"
@@ -167,8 +167,8 @@ export default function CounselorReports() {
                 </div>
               </div>
               
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 text-center">
+              <div className="mt-6 p-4 bg-beige-100 rounded-lg">
+                <p className="text-sm text-gray-700 text-center">
                   <BarChart3 className="inline w-4 h-4 text-sage-500 mr-2" />
                   Advanced analytics and visualizations will be available once AI integration is complete.
                 </p>
