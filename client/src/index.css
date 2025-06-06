@@ -102,10 +102,10 @@
   }
 }
 
-/* Happiness slider custom styles - green and white only */
+/* Happiness slider custom styles - fully green */
 .happiness-slider [data-radix-slider-track] {
-  background-color: #ffffff !important;
-  border: 1px solid hsl(var(--sage-300)) !important;
+  background-color: hsl(var(--sage-500)) !important;
+  border: none !important;
 }
 
 .happiness-slider [data-radix-slider-range] {
