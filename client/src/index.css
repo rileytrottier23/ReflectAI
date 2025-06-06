@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: 40 28% 94%; /* #F5F1E8 - beige main background */
+  --background: 60 10% 94%; /* #F1F1ED - neutral beige main background */
   --foreground: 0 0% 0%; /* #000000 - charcoal black */
-  --muted: 38 20% 92%; /* #FAF7F2 - beige light */
+  --muted: 60 8% 92%; /* #F7F7F4 - neutral beige light */
   --muted-foreground: 0 0% 20%; /* #333333 - charcoal light */
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 0%;
   --card: 0 0% 100%;
   --card-foreground: 0 0% 0%;
-  --border: 38 25% 85%; /* #E8DECB - beige dark */
-  --input: 38 25% 85%;
+  --border: 60 12% 85%; /* #E3E3DC - neutral beige dark */
+  --input: 60 12% 85%;
   --primary: 28 35% 48%; /* #A67C52 - leather brown */
   --primary-foreground: 0 0% 100%;
   --secondary: 95 20% 60%; /* #96AB8A - sage green */
   --secondary-foreground: 0 0% 0%;
-  --accent: 38 25% 85%;
+  --accent: 60 12% 85%;
   --accent-foreground: 0 0% 0%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
   --ring: 28 35% 48%;
   --radius: 0.75rem;
   
-  /* Beige variants */
-  --beige-50: 38 20% 97%; /* #FBFAF8 */
-  --beige-100: 38 20% 92%; /* #FAF7F2 */
-  --beige-200: 40 28% 94%; /* #F5F1E8 */
-  --beige-300: 38 25% 85%; /* #E8DECB */
-  --beige-400: 38 25% 80%; /* #DDD2B8 */
-  --beige-500: 38 25% 75%; /* #D2C6A5 */
-  --beige-600: 38 25% 70%; /* #C7BA92 */
-  --beige-700: 38 25% 65%; /* #BCAE7F */
-  --beige-800: 38 25% 55%; /* #A69669 */
-  --beige-900: 38 25% 45%; /* #8A7E56 */
+  /* Beige variants - more neutral */
+  --beige-50: 60 8% 97%; /* #FAFAF9 */
+  --beige-100: 60 8% 92%; /* #F7F7F4 */
+  --beige-200: 60 10% 94%; /* #F1F1ED */
+  --beige-300: 60 12% 85%; /* #E3E3DC */
+  --beige-400: 60 12% 80%; /* #D8D8D0 */
+  --beige-500: 60 12% 75%; /* #CDCDC3 */
+  --beige-600: 60 12% 70%; /* #C2C2B6 */
+  --beige-700: 60 12% 65%; /* #B7B7A9 */
+  --beige-800: 60 12% 55%; /* #A1A193 */
+  --beige-900: 60 12% 45%; /* #8B8B7D */
   
   /* Leather brown variants */
   --leather-50: 28 20% 95%; /* #F7F5F2 */

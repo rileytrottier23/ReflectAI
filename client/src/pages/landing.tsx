@@ -135,7 +135,7 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-leather-500 border-t border-leather-400 mt-24">
+      <footer className="bg-sage-600 border-t border-sage-500 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
