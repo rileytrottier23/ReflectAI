@@ -91,6 +91,36 @@ export default function CounselorReports() {
   }
 
   const handleGenerateReport = () => {
+    // Check if it's the end of the selected month
+    const now = new Date();
+    const selectedDate = new Date(selectedYear, selectedMonth - 1);
+    const isCurrentMonth = selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth();
+    const isEndOfMonth = now.getDate() >= 28; // Allow generation from 28th onwards
+    
+    if (isCurrentMonth && !isEndOfMonth) {
+      toast({
+        title: "Report Not Available",
+        description: "Counselor reports can only be generated at the end of the month (after the 28th).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if there are at least 7 entries for the selected month
+    const selectedMonthEntries = allEntries.filter((entry: any) => {
+      const entryDate = new Date(entry.date);
+      return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === selectedYear;
+    });
+    
+    if (selectedMonthEntries.length < 7) {
+      toast({
+        title: "Insufficient Entries",
+        description: `You need at least 7 journal entries to generate a counselor report. You currently have ${selectedMonthEntries.length} entries for this month.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     generateReportMutation.mutate({ month: selectedMonth, year: selectedYear });
   };
 
@@ -163,6 +193,45 @@ export default function CounselorReports() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            
+            {/* Entry Count and Validation Status */}
+            <div className="mb-4 p-3 bg-beige-50 rounded-lg">
+              <div className="text-sm text-gray-700">
+                {(() => {
+                  const selectedMonthEntries = allEntries.filter((entry: any) => {
+                    const entryDate = new Date(entry.date);
+                    return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === selectedYear;
+                  });
+                  
+                  const now = new Date();
+                  const selectedDate = new Date(selectedYear, selectedMonth - 1);
+                  const isCurrentMonth = selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth();
+                  const isEndOfMonth = now.getDate() >= 28;
+                  
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span>Entries for {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}:</span>
+                        <span className={`font-medium ${selectedMonthEntries.length >= 7 ? 'text-sage-600' : 'text-amber-600'}`}>
+                          {selectedMonthEntries.length} / 7 required
+                        </span>
+                      </div>
+                      <div className="text-xs">
+                        {selectedMonthEntries.length < 7 && (
+                          <span className="text-amber-600">Need {7 - selectedMonthEntries.length} more entries to generate report</span>
+                        )}
+                        {selectedMonthEntries.length >= 7 && isCurrentMonth && !isEndOfMonth && (
+                          <span className="text-amber-600">Reports available at month end (after 28th)</span>
+                        )}
+                        {selectedMonthEntries.length >= 7 && (!isCurrentMonth || isEndOfMonth) && (
+                          <span className="text-sage-600">Report can be generated</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             
