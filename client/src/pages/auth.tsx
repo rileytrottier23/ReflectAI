@@ -81,6 +81,7 @@ export default function Auth() {
                     type="text"
                     placeholder="Enter your full name"
                     className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+                    defaultValue=""
                     required
                   />
                 </div>
@@ -95,6 +96,7 @@ export default function Auth() {
                   type="email"
                   placeholder="Enter your email"
                   className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+                  defaultValue=""
                   required
                 />
               </div>

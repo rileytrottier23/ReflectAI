@@ -21,7 +21,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
 
   // Create a set of dates that have entries for quick lookup
   const datesWithEntries = new Set(
-    entries?.map((entry: any) => entry.date) || []
+    Array.isArray(entries) ? entries.map((entry: any) => entry.date) : []
   );
 
   const monthName = currentMonth.toLocaleDateString('en-US', { 

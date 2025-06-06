@@ -16,6 +16,33 @@ interface CounselorReport {
   detailedAnalysis: string;
 }
 
+function calculateLongestStreakForMonth(entries: any[]): number {
+  if (!entries || entries.length === 0) return 0;
+  
+  const sortedEntries = entries
+    .map(entry => new Date(entry.date))
+    .sort((a, b) => a.getTime() - b.getTime());
+  
+  let longestStreak = 0;
+  let currentStreak = 1;
+  
+  for (let i = 1; i < sortedEntries.length; i++) {
+    const prevDate = sortedEntries[i - 1];
+    const currentDate = sortedEntries[i];
+    
+    const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+      currentStreak++;
+    } else {
+      longestStreak = Math.max(longestStreak, currentStreak);
+      currentStreak = 1;
+    }
+  }
+  
+  return Math.max(longestStreak, currentStreak);
+}
+
 export default function CounselorReports() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
@@ -335,31 +362,4 @@ export default function CounselorReports() {
       </main>
     </div>
   );
-}
-
-function calculateLongestStreakForMonth(entries: any[]): number {
-  if (!entries || entries.length === 0) return 0;
-  
-  const sortedEntries = entries
-    .map(entry => new Date(entry.date))
-    .sort((a, b) => a.getTime() - b.getTime());
-  
-  let longestStreak = 0;
-  let currentStreak = 1;
-  
-  for (let i = 1; i < sortedEntries.length; i++) {
-    const prevDate = sortedEntries[i - 1];
-    const currentDate = sortedEntries[i];
-    
-    const diffDays = Math.floor((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) {
-      currentStreak++;
-    } else {
-      longestStreak = Math.max(longestStreak, currentStreak);
-      currentStreak = 1;
-    }
-  }
-  
-  return Math.max(longestStreak, currentStreak);
 }
