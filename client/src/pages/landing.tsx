@@ -10,7 +10,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-beige-200">
       {/* Navigation Header */}
-      <header className="bg-leather-500 shadow-sm">
+      <header className="bg-sage-600 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
@@ -27,7 +27,7 @@ export default function Landing() {
               </Button>
               <Button 
                 onClick={handleLogin}
-                className="bg-white text-leather-600 hover:bg-beige-100 hover:text-leather-700 font-medium px-6"
+                className="bg-white text-sage-700 hover:bg-beige-100 hover:text-sage-800 font-medium px-6"
               >
                 Register
               </Button>
@@ -49,7 +49,7 @@ export default function Landing() {
             
             <Button 
               onClick={handleLogin}
-              className="bg-leather-500 hover:bg-leather-600 text-white px-8 py-3 text-lg font-medium"
+              className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 text-lg font-medium"
             >
               Start Journaling
             </Button>
@@ -66,11 +66,11 @@ export default function Landing() {
               <label className="block text-sm font-medium text-gray-800 mb-2">How are you feeling today?</label>
               <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
                 <span>Not great</span>
-                <span className="font-medium text-leather-600">7/10</span>
+                <span className="font-medium text-sage-600">7/10</span>
                 <span>Excellent</span>
               </div>
               <div className="w-full h-2 bg-beige-300 rounded-lg relative">
-                <div className="h-2 bg-leather-500 rounded-lg" style={{ width: '70%' }}></div>
+                <div className="h-2 bg-sage-500 rounded-lg" style={{ width: '70%' }}></div>
               </div>
             </div>
             
@@ -90,8 +90,8 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="text-center border-beige-300 bg-white shadow-sm">
               <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-leather-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8 text-leather-600" />
+                <div className="w-16 h-16 bg-sage-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 text-sage-600" />
                 </div>
                 <CardTitle className="font-display text-lg font-semibold text-black">Daily Journaling</CardTitle>
               </CardHeader>
@@ -104,8 +104,8 @@ export default function Landing() {
 
             <Card className="text-center border-beige-300 bg-white shadow-sm">
               <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-sage-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <Star className="w-8 h-8 text-sage-600" />
+                <div className="w-16 h-16 bg-leather-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <Star className="w-8 h-8 text-leather-600" />
                 </div>
                 <CardTitle className="font-display text-lg font-semibold text-black">AI Reflections</CardTitle>
               </CardHeader>
@@ -119,7 +119,7 @@ export default function Landing() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-24 bg-leather-500 rounded-2xl p-12 text-center text-white">
+        <div className="mt-24 bg-sage-600 rounded-2xl p-12 text-center text-white">
           <h2 className="text-3xl font-display font-semibold mb-4">Start Your Journaling Journey Today</h2>
           <p className="text-lg text-beige-100 mb-8 max-w-2xl mx-auto">
             Join thousands of people who have improved their self-awareness and mental clarity 
