@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { generateCounselorReport } from "./ai-service";
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -111,6 +112,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching monthly journal entries:", error);
       res.status(500).json({ message: "Failed to fetch monthly journal entries" });
+    }
+  });
+
+  // Generate AI counselor report
+  app.post("/api/counselor/report", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { month, year } = req.body;
+      
+      if (!month || !year || month < 1 || month > 12) {
+        return res.status(400).json({ message: "Valid month and year are required" });
+      }
+      
+      // Get journal entries for the specified month
+      const entries = await storage.getUserJournalEntriesByMonth(userId, year, month);
+      
+      // Generate AI report
+      const report = await generateCounselorReport(entries, month, year);
+      
+      res.json(report);
+    } catch (error) {
+      console.error("Error generating counselor report:", error);
+      res.status(500).json({ message: "Failed to generate report" });
     }
   });
 

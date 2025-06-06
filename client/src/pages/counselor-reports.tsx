@@ -1,20 +1,60 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import NavigationHeader from "@/components/navigation-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { BarChart3, Calendar, TrendingUp, Brain, Lightbulb, Target, Loader2 } from "lucide-react";
+
+interface CounselorReport {
+  overallMoodTrend: string;
+  keyInsights: string[];
+  recommendations: string[];
+  emotionalPatterns: string;
+  monthlyScore: number;
+  summary: string;
+}
 
 export default function CounselorReports() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [report, setReport] = useState<CounselorReport | null>(null);
 
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["/api/journal/entries"],
     enabled: isAuthenticated,
+  });
+
+  const generateReportMutation = useMutation({
+    mutationFn: async ({ month, year }: { month: number; year: number }) => {
+      return await apiRequest("/api/counselor/report", {
+        method: "POST",
+        body: JSON.stringify({ month, year }),
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+    onSuccess: (data: CounselorReport) => {
+      setReport(data);
+      toast({
+        title: "Report Generated",
+        description: "Your AI counselor report has been created successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error generating report:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate counselor report. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Redirect to home if not authenticated
@@ -43,6 +83,10 @@ export default function CounselorReports() {
   if (!isAuthenticated) {
     return null;
   }
+
+  const handleGenerateReport = () => {
+    generateReportMutation.mutate({ month: selectedMonth, year: selectedYear });
+  };
 
   // Calculate stats from entries
   const currentMonth = new Date().getMonth() + 1;
