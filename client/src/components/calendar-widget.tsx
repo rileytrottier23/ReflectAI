@@ -85,10 +85,10 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <Card className="border-cream-200">
+    <Card className="border-beige-300 bg-white shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-display font-semibold text-gray-800">
+          <CardTitle className="text-lg font-display font-semibold text-black">
             Calendar
           </CardTitle>
           <div className="flex items-center space-x-2">
@@ -96,20 +96,20 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
               variant="ghost"
               size="sm"
               onClick={previousMonth}
-              className="p-2 hover:bg-gray-100"
+              className="p-2 hover:bg-beige-100"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 text-gray-700" />
             </Button>
-            <span className="text-sm font-medium text-gray-700 px-3 min-w-[120px] text-center">
+            <span className="text-sm font-medium text-black px-3 min-w-[120px] text-center">
               {monthName}
             </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={nextMonth}
-              className="p-2 hover:bg-gray-100"
+              className="p-2 hover:bg-beige-100"
             >
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-4 h-4 text-gray-700" />
             </Button>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1 mb-4">
           {weekDays.map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+            <div key={day} className="text-center text-xs font-medium text-gray-600 py-2">
               {day}
             </div>
           ))}
@@ -136,7 +136,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
                 key={index}
                 variant="ghost"
                 className={`
-                  aspect-square flex items-center justify-center text-sm rounded-lg hover:bg-gray-100 
+                  aspect-square flex items-center justify-center text-sm rounded-lg hover:bg-beige-100 
                   transition-colors duration-200 relative
                   ${!day.isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
                   ${isSelected ? 'bg-sage-500 text-white hover:bg-sage-600' : ''}
@@ -154,8 +154,8 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
         </div>
         
         {/* Legend */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="mt-4 pt-4 border-t border-beige-300">
+          <div className="flex items-center justify-between text-xs text-gray-600">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-sage-400 rounded-full mr-2"></div>
               <span>Has Entry</span>

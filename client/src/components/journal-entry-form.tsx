@@ -209,12 +209,12 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
 
   if (isLoading) {
     return (
-      <Card className="border-cream-200">
+      <Card className="border-beige-300 bg-white shadow-sm">
         <CardContent className="pt-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-4 bg-beige-200 rounded w-1/4"></div>
+            <div className="h-8 bg-beige-200 rounded"></div>
+            <div className="h-32 bg-beige-200 rounded"></div>
           </div>
         </CardContent>
       </Card>
@@ -222,14 +222,14 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
   }
 
   return (
-    <Card className="border-cream-200">
+    <Card className="border-beige-300 bg-white shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-display font-semibold text-gray-800">
+            <CardTitle className="text-lg font-display font-semibold text-black">
               {entry ? "Edit Entry" : "Today's Entry"}
             </CardTitle>
-            <p className="text-sm text-gray-600">{formattedDate}</p>
+            <p className="text-sm text-gray-700">{formattedDate}</p>
           </div>
           {entry && (
             <AlertDialog>
@@ -268,11 +268,11 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Happiness Slider */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+            <Label className="text-sm font-medium text-black mb-3 block">
               How are you feeling today?
             </Label>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center justify-between text-xs text-gray-600">
                 <span>Not great</span>
                 <span className="font-medium text-sage-600">{happinessValue[0]}/10</span>
                 <span>Excellent</span>
@@ -285,7 +285,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
                 step={1}
                 className="happiness-slider"
               />
-              <div className="flex justify-between text-xs text-gray-400">
+              <div className="flex justify-between text-xs text-gray-500">
                 {Array.from({ length: 10 }, (_, i) => (
                   <span key={i + 1}>{i + 1}</span>
                 ))}
@@ -295,17 +295,17 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
 
           {/* Journal Content */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+            <Label className="text-sm font-medium text-black mb-3 block">
               Journal Entry
             </Label>
             <Textarea
               {...form.register("content")}
               placeholder="What's on your mind today? Share your thoughts, experiences, and reflections..."
-              className="min-h-[200px] resize-none border-gray-300 focus:ring-sage-500 focus:border-sage-500"
+              className="min-h-[200px] resize-none border-beige-300 focus:ring-sage-500 focus:border-sage-500"
             />
             <div className="flex justify-between items-center mt-2">
-              <p className="text-xs text-gray-500">No word limit - write as much as you'd like</p>
-              <p className="text-xs text-gray-500">{wordCount} words</p>
+              <p className="text-xs text-gray-600">No word limit - write as much as you'd like</p>
+              <p className="text-xs text-gray-600">{wordCount} words</p>
             </div>
             {form.formState.errors.content && (
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.content.message}</p>

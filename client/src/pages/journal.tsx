@@ -41,16 +41,16 @@ export default function Journal() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-100">
+    <div className="min-h-screen bg-beige-200">
       <NavigationHeader currentTab="journal" />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-display font-semibold text-gray-800 mb-2">
+          <h2 className="text-3xl font-display font-semibold text-black mb-2">
             Keep your thoughts organized
           </h2>
-          <p className="text-gray-600">
-            ReflectAI helps you record daily reflections, track your mood, and gain insights through personalized analytics.
+          <p className="text-gray-800">
+            ReflectAI helps you record daily reflections and gain insights through personalized analytics and monthly summaries.
           </p>
         </div>
 

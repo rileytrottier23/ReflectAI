@@ -47,8 +47,8 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                 <Link href="/journal">
                   <Button
                     variant="ghost"
-                    className={`text-white hover:text-cream-200 transition-colors duration-200 font-medium ${
-                      currentTab === "journal" ? "text-white" : "text-cream-200"
+                    className={`text-white hover:text-beige-100 transition-colors duration-200 font-medium ${
+                      currentTab === "journal" ? "text-white" : "text-beige-200"
                     }`}
                   >
                     <BookOpen className="w-4 h-4 mr-2" />
@@ -58,8 +58,8 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                 <Link href="/counselor-reports">
                   <Button
                     variant="ghost"
-                    className={`text-white hover:text-cream-200 transition-colors duration-200 font-medium ${
-                      currentTab === "reports" ? "text-white" : "text-cream-200"
+                    className={`text-white hover:text-beige-100 transition-colors duration-200 font-medium ${
+                      currentTab === "reports" ? "text-white" : "text-beige-200"
                     }`}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
@@ -73,7 +73,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                     <Button variant="ghost" className="p-1">
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={user?.profileImageUrl || ""} />
-                        <AvatarFallback className="bg-cream-200 text-sage-600 text-sm">
+                        <AvatarFallback className="bg-beige-200 text-sage-600 text-sm">
                           {getInitials(user?.firstName, user?.lastName)}
                         </AvatarFallback>
                       </Avatar>
@@ -99,7 +99,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
             <Button
               variant="ghost"
               className={`transition-colors duration-200 font-medium flex flex-col items-center ${
-                currentTab === "journal" ? "text-white" : "text-cream-200 hover:text-white"
+                currentTab === "journal" ? "text-white" : "text-beige-200 hover:text-white"
               }`}
             >
               <BookOpen className="w-5 h-5 mb-1" />
@@ -110,7 +110,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
             <Button
               variant="ghost"
               className={`transition-colors duration-200 font-medium flex flex-col items-center ${
-                currentTab === "reports" ? "text-white" : "text-cream-200 hover:text-white"
+                currentTab === "reports" ? "text-white" : "text-beige-200 hover:text-white"
               }`}
             >
               <BarChart3 className="w-5 h-5 mb-1" />
