@@ -1,0 +1,119 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Journal entry routes
+  app.get("/api/journal/entries", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const entries = await storage.getUserJournalEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching journal entries:", error);
+      res.status(500).json({ message: "Failed to fetch journal entries" });
+    }
+  });
+
+  app.get("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { date } = req.params;
+      const entry = await storage.getJournalEntry(userId, date);
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching journal entry:", error);
+      res.status(500).json({ message: "Failed to fetch journal entry" });
+    }
+  });
+
+  app.post("/api/journal/entries", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertJournalEntrySchema.parse(req.body);
+      
+      // Check if entry already exists for this date
+      const existingEntry = await storage.getJournalEntry(userId, validatedData.date);
+      if (existingEntry) {
+        return res.status(400).json({ message: "Journal entry already exists for this date" });
+      }
+      
+      const entry = await storage.createJournalEntry(userId, validatedData);
+      res.json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error creating journal entry:", error);
+      res.status(500).json({ message: "Failed to create journal entry" });
+    }
+  });
+
+  app.put("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { date } = req.params;
+      const validatedData = updateJournalEntrySchema.parse(req.body);
+      
+      const entry = await storage.updateJournalEntry(userId, date, validatedData);
+      res.json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Error updating journal entry:", error);
+      res.status(500).json({ message: "Failed to update journal entry" });
+    }
+  });
+
+  app.delete("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { date } = req.params;
+      
+      await storage.deleteJournalEntry(userId, date);
+      res.json({ message: "Journal entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      res.status(500).json({ message: "Failed to delete journal entry" });
+    }
+  });
+
+  app.get("/api/journal/entries/month/:year/:month", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { year, month } = req.params;
+      const entries = await storage.getUserJournalEntriesByMonth(userId, parseInt(year), parseInt(month));
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching monthly journal entries:", error);
+      res.status(500).json({ message: "Failed to fetch monthly journal entries" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}

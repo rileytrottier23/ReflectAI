@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 42 25% 95%; /* #F5F3F0 - cream background */
+  --foreground: 20 14.3% 4.1%;
+  --muted: 42 15% 90%; /* #F0EDE8 */
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 42 15% 85%; /* #E8E3DC */
+  --input: 42 15% 85%;
+  --primary: 108 25% 55%; /* #8FA68E - sage green */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 42 15% 90%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 42 15% 90%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 108 25% 55%;
+  --radius: 0.75rem;
+  
+  /* Custom sage green variants */
+  --sage-50: 108 15% 97%; /* #F7F8F7 */
+  --sage-100: 108 20% 93%; /* #EEF1EE */
+  --sage-200: 108 20% 87%; /* #DDE3DD */
+  --sage-300: 108 15% 76%; /* #B8C5B8 */
+  --sage-400: 108 20% 65%; /* #9BB09B */
+  --sage-500: 108 25% 55%; /* #8FA68E */
+  --sage-600: 108 30% 42%; /* #6B8E6B */
+  --sage-700: 108 30% 35%; /* #5A7A5A */
+  --sage-800: 108 30% 28%; /* #4A634A */
+  --sage-900: 108 30% 23%; /* #3D523D */
+  
+  /* Custom cream variants */
+  --cream-50: 42 25% 99%; /* #FEFEFE */
+  --cream-100: 42 25% 95%; /* #F5F3F0 */
+  --cream-200: 42 15% 90%; /* #F0EDE8 */
+  --cream-300: 42 20% 85%; /* #E8E3DC */
+  --cream-400: 42 25% 80%; /* #DDD6CB */
+  --cream-500: 42 25% 75%; /* #D2C9BA */
+  --cream-600: 42 25% 70%; /* #C5B8A5 */
+  --cream-700: 42 25% 65%; /* #B8A690 */
+  --cream-800: 42 25% 55%; /* #9A8B7A */
+  --cream-900: 42 25% 45%; /* #7D7064 */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 108 25% 55%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .sage-50 { color: hsl(var(--sage-50)); }
+  .sage-100 { color: hsl(var(--sage-100)); }
+  .sage-200 { color: hsl(var(--sage-200)); }
+  .sage-300 { color: hsl(var(--sage-300)); }
+  .sage-400 { color: hsl(var(--sage-400)); }
+  .sage-500 { color: hsl(var(--sage-500)); }
+  .sage-600 { color: hsl(var(--sage-600)); }
+  .sage-700 { color: hsl(var(--sage-700)); }
+  .sage-800 { color: hsl(var(--sage-800)); }
+  .sage-900 { color: hsl(var(--sage-900)); }
+  
+  .bg-sage-50 { background-color: hsl(var(--sage-50)); }
+  .bg-sage-100 { background-color: hsl(var(--sage-100)); }
+  .bg-sage-200 { background-color: hsl(var(--sage-200)); }
+  .bg-sage-300 { background-color: hsl(var(--sage-300)); }
+  .bg-sage-400 { background-color: hsl(var(--sage-400)); }
+  .bg-sage-500 { background-color: hsl(var(--sage-500)); }
+  .bg-sage-600 { background-color: hsl(var(--sage-600)); }
+  .bg-sage-700 { background-color: hsl(var(--sage-700)); }
+  .bg-sage-800 { background-color: hsl(var(--sage-800)); }
+  .bg-sage-900 { background-color: hsl(var(--sage-900)); }
+  
+  .cream-50 { color: hsl(var(--cream-50)); }
+  .cream-100 { color: hsl(var(--cream-100)); }
+  .cream-200 { color: hsl(var(--cream-200)); }
+  .cream-300 { color: hsl(var(--cream-300)); }
+  .cream-400 { color: hsl(var(--cream-400)); }
+  .cream-500 { color: hsl(var(--cream-500)); }
+  .cream-600 { color: hsl(var(--cream-600)); }
+  .cream-700 { color: hsl(var(--cream-700)); }
+  .cream-800 { color: hsl(var(--cream-800)); }
+  .cream-900 { color: hsl(var(--cream-900)); }
+  
+  .bg-cream-50 { background-color: hsl(var(--cream-50)); }
+  .bg-cream-100 { background-color: hsl(var(--cream-100)); }
+  .bg-cream-200 { background-color: hsl(var(--cream-200)); }
+  .bg-cream-300 { background-color: hsl(var(--cream-300)); }
+  .bg-cream-400 { background-color: hsl(var(--cream-400)); }
+  .bg-cream-500 { background-color: hsl(var(--cream-500)); }
+  .bg-cream-600 { background-color: hsl(var(--cream-600)); }
+  .bg-cream-700 { background-color: hsl(var(--cream-700)); }
+  .bg-cream-800 { background-color: hsl(var(--cream-800)); }
+  .bg-cream-900 { background-color: hsl(var(--cream-900)); }
+}
+
+/* Custom slider styling */
+.happiness-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  outline: none;
+}
+
+.happiness-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.happiness-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
