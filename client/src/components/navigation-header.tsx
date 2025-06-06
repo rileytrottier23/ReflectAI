@@ -1,35 +1,14 @@
-import { Sprout, BookOpen, BarChart3, User, LogOut } from "lucide-react";
+import { Sprout, BookOpen, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { Link, useLocation } from "wouter";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "wouter";
 
 interface NavigationHeaderProps {
   currentTab: "journal" | "reports";
 }
 
 export default function NavigationHeader({ currentTab }: NavigationHeaderProps) {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-
   const handleLogout = () => {
     window.location.href = "/api/logout";
-  };
-
-  const getInitials = (firstName?: string, lastName?: string) => {
-    if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    }
-    if (firstName) {
-      return firstName[0].toUpperCase();
-    }
-    return "U";
   };
 
   return (
@@ -68,24 +47,14 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                 </Link>
               </nav>
               <div className="flex items-center space-x-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-1">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={user?.profileImageUrl || ""} />
-                        <AvatarFallback className="bg-beige-200 text-sage-600 text-sm">
-                          {getInitials(user?.firstName, user?.lastName)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  className="text-white hover:text-beige-100 transition-colors duration-200"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
               </div>
             </div>
           </div>
