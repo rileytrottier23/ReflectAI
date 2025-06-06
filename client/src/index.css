@@ -3,50 +3,62 @@
 @tailwind utilities;
 
 :root {
-  --background: 42 25% 95%; /* #F5F3F0 - cream background */
-  --foreground: 20 14.3% 4.1%;
-  --muted: 42 15% 90%; /* #F0EDE8 */
-  --muted-foreground: 25 5.3% 44.7%;
+  --background: 40 28% 94%; /* #F5F1E8 - beige main background */
+  --foreground: 0 0% 0%; /* #000000 - charcoal black */
+  --muted: 38 20% 92%; /* #FAF7F2 - beige light */
+  --muted-foreground: 0 0% 20%; /* #333333 - charcoal light */
   --popover: 0 0% 100%;
-  --popover-foreground: 20 14.3% 4.1%;
+  --popover-foreground: 0 0% 0%;
   --card: 0 0% 100%;
-  --card-foreground: 20 14.3% 4.1%;
-  --border: 42 15% 85%; /* #E8E3DC */
-  --input: 42 15% 85%;
-  --primary: 108 25% 55%; /* #8FA68E - sage green */
+  --card-foreground: 0 0% 0%;
+  --border: 38 25% 85%; /* #E8DECB - beige dark */
+  --input: 38 25% 85%;
+  --primary: 28 35% 48%; /* #A67C52 - leather brown */
   --primary-foreground: 0 0% 100%;
-  --secondary: 42 15% 90%;
-  --secondary-foreground: 24 9.8% 10%;
-  --accent: 42 15% 90%;
-  --accent-foreground: 24 9.8% 10%;
+  --secondary: 95 20% 60%; /* #96AB8A - sage green */
+  --secondary-foreground: 0 0% 0%;
+  --accent: 38 25% 85%;
+  --accent-foreground: 0 0% 0%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 108 25% 55%;
+  --ring: 28 35% 48%;
   --radius: 0.75rem;
   
-  /* Custom sage green variants */
-  --sage-50: 108 15% 97%; /* #F7F8F7 */
-  --sage-100: 108 20% 93%; /* #EEF1EE */
-  --sage-200: 108 20% 87%; /* #DDE3DD */
-  --sage-300: 108 15% 76%; /* #B8C5B8 */
-  --sage-400: 108 20% 65%; /* #9BB09B */
-  --sage-500: 108 25% 55%; /* #8FA68E */
-  --sage-600: 108 30% 42%; /* #6B8E6B */
-  --sage-700: 108 30% 35%; /* #5A7A5A */
-  --sage-800: 108 30% 28%; /* #4A634A */
-  --sage-900: 108 30% 23%; /* #3D523D */
+  /* Beige variants */
+  --beige-50: 38 20% 97%; /* #FBFAF8 */
+  --beige-100: 38 20% 92%; /* #FAF7F2 */
+  --beige-200: 40 28% 94%; /* #F5F1E8 */
+  --beige-300: 38 25% 85%; /* #E8DECB */
+  --beige-400: 38 25% 80%; /* #DDD2B8 */
+  --beige-500: 38 25% 75%; /* #D2C6A5 */
+  --beige-600: 38 25% 70%; /* #C7BA92 */
+  --beige-700: 38 25% 65%; /* #BCAE7F */
+  --beige-800: 38 25% 55%; /* #A69669 */
+  --beige-900: 38 25% 45%; /* #8A7E56 */
   
-  /* Custom cream variants */
-  --cream-50: 42 25% 99%; /* #FEFEFE */
-  --cream-100: 42 25% 95%; /* #F5F3F0 */
-  --cream-200: 42 15% 90%; /* #F0EDE8 */
-  --cream-300: 42 20% 85%; /* #E8E3DC */
-  --cream-400: 42 25% 80%; /* #DDD6CB */
-  --cream-500: 42 25% 75%; /* #D2C9BA */
-  --cream-600: 42 25% 70%; /* #C5B8A5 */
-  --cream-700: 42 25% 65%; /* #B8A690 */
-  --cream-800: 42 25% 55%; /* #9A8B7A */
-  --cream-900: 42 25% 45%; /* #7D7064 */
+  /* Leather brown variants */
+  --leather-50: 28 20% 95%; /* #F7F5F2 */
+  --leather-100: 28 25% 90%; /* #F0EAE0 */
+  --leather-200: 28 30% 80%; /* #E3D0B8 */
+  --leather-300: 28 35% 70%; /* #D6B690 */
+  --leather-400: 28 35% 60%; /* #C99968 */
+  --leather-500: 28 35% 48%; /* #A67C52 */
+  --leather-600: 28 40% 40%; /* #8A6642 */
+  --leather-700: 28 40% 32%; /* #6E5035 */
+  --leather-800: 28 40% 24%; /* #523A28 */
+  --leather-900: 28 40% 16%; /* #36241A */
+  
+  /* Sage green variants */
+  --sage-50: 95 15% 95%; /* #F5F7F4 */
+  --sage-100: 95 15% 88%; /* #E8EDEA */
+  --sage-200: 95 15% 80%; /* #D4DDD5 */
+  --sage-300: 95 18% 72%; /* #BFCCC0 */
+  --sage-400: 95 18% 66%; /* #AABBAB */
+  --sage-500: 95 20% 60%; /* #96AB8A */
+  --sage-600: 95 25% 50%; /* #7D9371 */
+  --sage-700: 95 25% 40%; /* #647A5A */
+  --sage-800: 95 25% 30%; /* #4B6143 */
+  --sage-900: 95 25% 20%; /* #32482C */
 }
 
 .dark {
@@ -91,6 +103,53 @@
 }
 
 @layer utilities {
+  /* Beige color utilities */
+  .beige-50 { color: hsl(var(--beige-50)); }
+  .beige-100 { color: hsl(var(--beige-100)); }
+  .beige-200 { color: hsl(var(--beige-200)); }
+  .beige-300 { color: hsl(var(--beige-300)); }
+  .beige-400 { color: hsl(var(--beige-400)); }
+  .beige-500 { color: hsl(var(--beige-500)); }
+  .beige-600 { color: hsl(var(--beige-600)); }
+  .beige-700 { color: hsl(var(--beige-700)); }
+  .beige-800 { color: hsl(var(--beige-800)); }
+  .beige-900 { color: hsl(var(--beige-900)); }
+  
+  .bg-beige-50 { background-color: hsl(var(--beige-50)); }
+  .bg-beige-100 { background-color: hsl(var(--beige-100)); }
+  .bg-beige-200 { background-color: hsl(var(--beige-200)); }
+  .bg-beige-300 { background-color: hsl(var(--beige-300)); }
+  .bg-beige-400 { background-color: hsl(var(--beige-400)); }
+  .bg-beige-500 { background-color: hsl(var(--beige-500)); }
+  .bg-beige-600 { background-color: hsl(var(--beige-600)); }
+  .bg-beige-700 { background-color: hsl(var(--beige-700)); }
+  .bg-beige-800 { background-color: hsl(var(--beige-800)); }
+  .bg-beige-900 { background-color: hsl(var(--beige-900)); }
+  
+  /* Leather color utilities */
+  .leather-50 { color: hsl(var(--leather-50)); }
+  .leather-100 { color: hsl(var(--leather-100)); }
+  .leather-200 { color: hsl(var(--leather-200)); }
+  .leather-300 { color: hsl(var(--leather-300)); }
+  .leather-400 { color: hsl(var(--leather-400)); }
+  .leather-500 { color: hsl(var(--leather-500)); }
+  .leather-600 { color: hsl(var(--leather-600)); }
+  .leather-700 { color: hsl(var(--leather-700)); }
+  .leather-800 { color: hsl(var(--leather-800)); }
+  .leather-900 { color: hsl(var(--leather-900)); }
+  
+  .bg-leather-50 { background-color: hsl(var(--leather-50)); }
+  .bg-leather-100 { background-color: hsl(var(--leather-100)); }
+  .bg-leather-200 { background-color: hsl(var(--leather-200)); }
+  .bg-leather-300 { background-color: hsl(var(--leather-300)); }
+  .bg-leather-400 { background-color: hsl(var(--leather-400)); }
+  .bg-leather-500 { background-color: hsl(var(--leather-500)); }
+  .bg-leather-600 { background-color: hsl(var(--leather-600)); }
+  .bg-leather-700 { background-color: hsl(var(--leather-700)); }
+  .bg-leather-800 { background-color: hsl(var(--leather-800)); }
+  .bg-leather-900 { background-color: hsl(var(--leather-900)); }
+  
+  /* Sage color utilities */
   .sage-50 { color: hsl(var(--sage-50)); }
   .sage-100 { color: hsl(var(--sage-100)); }
   .sage-200 { color: hsl(var(--sage-200)); }
@@ -112,28 +171,6 @@
   .bg-sage-700 { background-color: hsl(var(--sage-700)); }
   .bg-sage-800 { background-color: hsl(var(--sage-800)); }
   .bg-sage-900 { background-color: hsl(var(--sage-900)); }
-  
-  .cream-50 { color: hsl(var(--cream-50)); }
-  .cream-100 { color: hsl(var(--cream-100)); }
-  .cream-200 { color: hsl(var(--cream-200)); }
-  .cream-300 { color: hsl(var(--cream-300)); }
-  .cream-400 { color: hsl(var(--cream-400)); }
-  .cream-500 { color: hsl(var(--cream-500)); }
-  .cream-600 { color: hsl(var(--cream-600)); }
-  .cream-700 { color: hsl(var(--cream-700)); }
-  .cream-800 { color: hsl(var(--cream-800)); }
-  .cream-900 { color: hsl(var(--cream-900)); }
-  
-  .bg-cream-50 { background-color: hsl(var(--cream-50)); }
-  .bg-cream-100 { background-color: hsl(var(--cream-100)); }
-  .bg-cream-200 { background-color: hsl(var(--cream-200)); }
-  .bg-cream-300 { background-color: hsl(var(--cream-300)); }
-  .bg-cream-400 { background-color: hsl(var(--cream-400)); }
-  .bg-cream-500 { background-color: hsl(var(--cream-500)); }
-  .bg-cream-600 { background-color: hsl(var(--cream-600)); }
-  .bg-cream-700 { background-color: hsl(var(--cream-700)); }
-  .bg-cream-800 { background-color: hsl(var(--cream-800)); }
-  .bg-cream-900 { background-color: hsl(var(--cream-900)); }
 }
 
 /* Custom slider styling */
