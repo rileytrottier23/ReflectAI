@@ -12,18 +12,24 @@ export default function Landing() {
       {/* Navigation Header */}
       <header className="bg-sage-500 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
-              <Sprout className="text-white text-xl mr-3" />
-              <h1 className="text-white font-display font-semibold text-xl">ReflectAI</h1>
-              <p className="text-cream-200 text-sm ml-3 hidden sm:block">Your personal space for reflection</p>
+              <Sprout className="text-white text-2xl mr-4" />
+              <h1 className="text-white font-display font-bold text-3xl">ReflectAI</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <Button 
+                variant="ghost"
                 onClick={handleLogin}
-                className="bg-white text-sage-600 hover:bg-cream-100 hover:text-sage-700 font-medium"
+                className="text-white hover:text-cream-200 font-medium"
               >
                 Login
+              </Button>
+              <Button 
+                onClick={handleLogin}
+                className="bg-white text-sage-600 hover:bg-cream-100 hover:text-sage-700 font-medium px-6"
+              >
+                Register
               </Button>
             </div>
           </div>
@@ -35,11 +41,10 @@ export default function Landing() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-4xl lg:text-5xl font-display font-bold text-gray-800 mb-6">
-              Document your journey, one day at a time
+              Keep your thoughts organized
             </h1>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              ReflectAI helps you capture your thoughts, track your mood, and gain insights through beautiful 
-              visualizations and AI-powered reflections.
+              ReflectAI helps you record daily reflections, track your mood, and gain insights through personalized analytics and monthly summaries.
             </p>
             
             <div className="space-y-4 mb-8">
@@ -49,14 +54,6 @@ export default function Landing() {
               </div>
               <p className="text-sm text-gray-600 ml-5">
                 Record your thoughts and experiences in a beautiful interface
-              </p>
-              
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-sage-400 rounded-full mr-3"></div>
-                <span className="text-gray-700 font-medium">Mood Tracking</span>
-              </div>
-              <p className="text-sm text-gray-600 ml-5">
-                Visualize your emotional wellbeing over time
               </p>
               
               <div className="flex items-center">
@@ -108,7 +105,7 @@ export default function Landing() {
         <div className="mt-24">
           <h2 className="text-3xl font-display font-semibold text-center text-gray-800 mb-12">Features</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="text-center border-cream-200">
               <CardHeader>
                 <BookOpen className="w-12 h-12 text-sage-500 mx-auto mb-4" />
@@ -121,17 +118,7 @@ export default function Landing() {
               </CardContent>
             </Card>
             
-            <Card className="text-center border-cream-200">
-              <CardHeader>
-                <TrendingUp className="w-12 h-12 text-sage-500 mx-auto mb-4" />
-                <CardTitle className="font-display">Mood Tracking</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>
-                  Track your emotional well-being over time with visual charts and statistics.
-                </CardDescription>
-              </CardContent>
-            </Card>
+
             
             <Card className="text-center border-cream-200">
               <CardHeader>
@@ -156,7 +143,7 @@ export default function Landing() {
           </p>
           <Button 
             onClick={handleLogin}
-            className="bg-white text-sage-600 hover:bg-cream-100 hover:text-sage-700 px-8 py-3 text-lg font-medium"
+            className="bg-white text-black hover:bg-cream-100 hover:text-gray-800 px-8 py-3 text-lg font-medium"
           >
             Sign Up Now
           </Button>
@@ -164,19 +151,19 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-cream-200 border-t border-cream-300 mt-24">
+      <footer className="bg-sage-500 border-t border-sage-400 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Sprout className="text-sage-600 text-lg mr-2" />
-              <span className="font-display font-semibold text-sage-800">ReflectAI</span>
+              <Sprout className="text-white text-2xl mr-3" />
+              <span className="font-display font-bold text-white text-2xl">ReflectAI</span>
             </div>
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
+            <div className="flex items-center space-x-6 text-sm text-cream-200">
               <span>Contact</span>
               <span>Privacy Policy</span>
             </div>
           </div>
-          <div className="mt-4 text-center text-sm text-gray-500">
+          <div className="mt-4 text-center text-sm text-cream-200">
             © 2025 ReflectAI. All rights reserved.
           </div>
         </div>
