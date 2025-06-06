@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Journal from "@/pages/journal";
 import CounselorReports from "@/pages/counselor-reports";
+import Auth from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/auth" component={Auth} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
