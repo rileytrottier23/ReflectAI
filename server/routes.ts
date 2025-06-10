@@ -38,6 +38,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { date } = req.params;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
+        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+      }
+      
       const entry = await storage.getJournalEntry(userId, date);
       
       if (!entry) {
@@ -77,6 +83,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { date } = req.params;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
+        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+      }
+      
       const validatedData = updateJournalEntrySchema.parse(req.body);
       
       const entry = await storage.updateJournalEntry(userId, date, validatedData);
@@ -94,6 +106,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { date } = req.params;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
+        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+      }
       
       await storage.deleteJournalEntry(userId, date);
       res.json({ message: "Journal entry deleted successfully" });

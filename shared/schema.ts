@@ -8,6 +8,7 @@ import {
   integer,
   date,
   serial,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -46,7 +47,9 @@ export const journalEntries = pgTable("journal_entries", {
   happinessScore: integer("happiness_score").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  userDateUnique: unique().on(table.userId, table.date),
+}));
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -63,8 +66,8 @@ export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
 // Schemas for validation
 export const insertJournalEntrySchema = createInsertSchema(journalEntries, {
   happinessScore: z.number().min(1).max(10),
-  content: z.string().min(1),
-  date: z.string(),
+  content: z.string().min(1).max(10000, "Journal entry cannot exceed 10,000 characters"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
 }).omit({
   id: true,
   userId: true,
