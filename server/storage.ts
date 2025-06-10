@@ -8,7 +8,7 @@ import {
   type UpdateJournalEntry,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, lte } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -107,8 +107,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(journalEntries.userId, userId),
-          gte(journalEntries.date, startDate),
-          lte(journalEntries.date, endDate)
+          sql`date >= ${startDate}`,
+          sql`date <= ${endDate}`
         )
       )
       .orderBy(desc(journalEntries.date));
