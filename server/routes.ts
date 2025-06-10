@@ -107,7 +107,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { year, month } = req.params;
-      const entries = await storage.getUserJournalEntriesByMonth(userId, parseInt(year), parseInt(month));
+      
+      const yearNum = parseInt(year);
+      const monthNum = parseInt(month);
+      
+      if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12 || yearNum < 1900 || yearNum > 2100) {
+        return res.status(400).json({ message: "Invalid year or month parameters" });
+      }
+      
+      const entries = await storage.getUserJournalEntriesByMonth(userId, yearNum, monthNum);
       res.json(entries);
     } catch (error) {
       console.error("Error fetching monthly journal entries:", error);
@@ -121,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { month, year } = req.body;
       
-      if (!month || !year || month < 1 || month > 12) {
+      if (!month || !year || month < 1 || month > 12 || year < 1900 || year > 2100) {
         return res.status(400).json({ message: "Valid month and year are required" });
       }
       
