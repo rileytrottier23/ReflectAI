@@ -8,7 +8,7 @@ import {
   type UpdateJournalEntry,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -98,7 +98,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUserJournalEntriesByMonth(userId: string, year: number, month: number): Promise<JournalEntry[]> {
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
+    const lastDay = new Date(year, month, 0).getDate(); // Get last day of month
+    const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
     
     return await db
       .select()
@@ -106,7 +107,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(journalEntries.userId, userId),
-          eq(journalEntries.date, startDate) // This is a simplified version, in practice you'd use >= and <=
+          gte(journalEntries.date, startDate),
+          lte(journalEntries.date, endDate)
         )
       )
       .orderBy(desc(journalEntries.date));

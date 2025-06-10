@@ -40,6 +40,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
   const queryClient = useQueryClient();
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
   const [happinessValue, setHappinessValue] = useState([7]);
 
   const { data: entry, isLoading } = useQuery({
@@ -101,11 +102,12 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
     }
   }, [entry, selectedDate, form]);
 
-  // Update word count when content changes
+  // Update word and character count when content changes
   useEffect(() => {
     const content = form.watch("content");
     const words = content.trim() === "" ? 0 : content.trim().split(/\s+/).length;
     setWordCount(words);
+    setCharCount(content.length);
   }, [form.watch("content")]);
 
   const saveMutation = useMutation({
@@ -321,8 +323,11 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
               placeholder="What's on your mind today? Share your thoughts, experiences, and reflections..."
               className="min-h-[200px] resize-none border-beige-300 focus:ring-sage-500 focus:border-sage-500"
             />
-            <div className="flex justify-end items-center mt-2">
+            <div className="flex justify-between items-center mt-2">
               <p className="text-xs text-gray-600">{wordCount} words</p>
+              <p className={`text-xs ${charCount > 10000 ? 'text-red-500' : charCount > 9000 ? 'text-amber-500' : 'text-gray-600'}`}>
+                {charCount}/10,000 characters
+              </p>
             </div>
             {form.formState.errors.content && (
               <p className="text-red-500 text-sm mt-1">{form.formState.errors.content.message}</p>
