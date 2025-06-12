@@ -33,14 +33,14 @@ export function setupAuth(app: Express) {
   const MemStore = MemoryStore(session);
   
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "your-secret-key-change-this",
+    secret: process.env.SESSION_SECRET || require('crypto').randomBytes(32).toString('hex'),
     resave: false,
     saveUninitialized: false,
     store: new MemStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
     cookie: {
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
       sameSite: 'lax',
