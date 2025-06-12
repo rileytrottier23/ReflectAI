@@ -8,6 +8,10 @@ export default function Landing() {
     window.location.href = "/auth";
   };
 
+  const handleRegister = () => {
+    window.location.href = "/auth?mode=register";
+  };
+
   return (
     <div className="min-h-screen bg-beige-200">
       {/* Navigation Header */}
@@ -27,7 +31,7 @@ export default function Landing() {
                 Login
               </Button>
               <Button 
-                onClick={handleLogin}
+                onClick={handleRegister}
                 className="bg-white text-sage-700 hover:bg-beige-100 hover:text-sage-800 font-medium px-6"
               >
                 Register
@@ -49,7 +53,7 @@ export default function Landing() {
             </p>
             
             <Button 
-              onClick={handleLogin}
+              onClick={handleRegister}
               className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 text-lg font-medium"
             >
               Start Journaling
@@ -127,7 +131,7 @@ export default function Landing() {
             through regular journaling.
           </p>
           <Button 
-            onClick={handleLogin}
+            onClick={handleRegister}
             className="bg-white text-black hover:bg-beige-100 hover:text-gray-800 px-8 py-3 text-lg font-medium"
           >
             Sign Up Now
