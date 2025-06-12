@@ -1,14 +1,17 @@
 import { Sprout, BookOpen, BarChart3, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 interface NavigationHeaderProps {
   currentTab: "journal" | "reports";
 }
 
 export default function NavigationHeader({ currentTab }: NavigationHeaderProps) {
+  const { logoutMutation } = useAuth();
+  
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    logoutMutation.mutate();
   };
 
   return (
