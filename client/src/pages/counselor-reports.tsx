@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import NavigationHeader from "@/components/navigation-header";
@@ -45,14 +45,14 @@ function calculateLongestStreakForMonth(entries: any[]): number {
 
 export default function CounselorReports() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [report, setReport] = useState<CounselorReport | null>(null);
 
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["/api/journal/entries"],
-    enabled: isAuthenticated,
+    enabled: !!user,
   });
 
   const generateReportMutation = useMutation({
@@ -89,18 +89,18 @@ export default function CounselorReports() {
 
   // Redirect to home if not authenticated
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !user) {
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/auth";
       }, 500);
       return;
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [user, isLoading, toast]);
 
   if (isLoading) {
     return (
@@ -110,7 +110,7 @@ export default function CounselorReports() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null;
   }
 
