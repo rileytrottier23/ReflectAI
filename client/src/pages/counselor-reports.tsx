@@ -74,15 +74,15 @@ export default function CounselorReports() {
     onSuccess: (data: CounselorReport) => {
       setReport(data);
       toast({
-        title: "Report Generated",
-        description: "Your AI counselor report has been created successfully.",
+        title: "Report ready",
+        description: "Your counselor report has been generated",
       });
     },
     onError: (error) => {
       console.error("Error generating report:", error);
       toast({
-        title: "Error",
-        description: "Failed to generate counselor report. Please try again.",
+        title: "Unable to generate report",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -92,8 +92,8 @@ export default function CounselorReports() {
   useEffect(() => {
     if (!isLoading && !user) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Session expired",
+        description: "Please log in again to continue",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -124,8 +124,8 @@ export default function CounselorReports() {
     
     if (isCurrentMonth && !isEndOfMonth) {
       toast({
-        title: "Report Not Available",
-        description: "Counselor reports can only be generated at the end of the month (after the 28th).",
+        title: "Report not available yet",
+        description: "Reports can only be generated at the end of the month (after the 28th)",
         variant: "destructive",
       });
       return;
