@@ -27,26 +27,21 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  constructor() {}
 
+  // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, parseInt(id)));
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(userData).returning();
     return user;
   }
 
@@ -55,7 +50,7 @@ export class DatabaseStorage implements IStorage {
     const [entry] = await db
       .select()
       .from(journalEntries)
-      .where(and(eq(journalEntries.userId, userId), eq(journalEntries.date, date)));
+      .where(and(eq(journalEntries.userId, parseInt(userId)), eq(journalEntries.date, date)));
     return entry;
   }
 
@@ -63,7 +58,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(journalEntries)
-      .where(eq(journalEntries.userId, userId))
+      .where(eq(journalEntries.userId, parseInt(userId)))
       .orderBy(desc(journalEntries.date));
   }
 
@@ -72,7 +67,7 @@ export class DatabaseStorage implements IStorage {
       .insert(journalEntries)
       .values({
         ...entry,
-        userId,
+        userId: parseInt(userId),
       })
       .returning();
     return newEntry;
@@ -81,11 +76,8 @@ export class DatabaseStorage implements IStorage {
   async updateJournalEntry(userId: string, date: string, entry: UpdateJournalEntry): Promise<JournalEntry> {
     const [updatedEntry] = await db
       .update(journalEntries)
-      .set({
-        ...entry,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(journalEntries.userId, userId), eq(journalEntries.date, date)))
+      .set({ ...entry, updatedAt: new Date() })
+      .where(and(eq(journalEntries.userId, parseInt(userId)), eq(journalEntries.date, date)))
       .returning();
     return updatedEntry;
   }
@@ -93,12 +85,12 @@ export class DatabaseStorage implements IStorage {
   async deleteJournalEntry(userId: string, date: string): Promise<void> {
     await db
       .delete(journalEntries)
-      .where(and(eq(journalEntries.userId, userId), eq(journalEntries.date, date)));
+      .where(and(eq(journalEntries.userId, parseInt(userId)), eq(journalEntries.date, date)));
   }
 
   async getUserJournalEntriesByMonth(userId: string, year: number, month: number): Promise<JournalEntry[]> {
     const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate(); // Get last day of month
+    const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
     
     return await db
@@ -106,7 +98,7 @@ export class DatabaseStorage implements IStorage {
       .from(journalEntries)
       .where(
         and(
-          eq(journalEntries.userId, userId),
+          eq(journalEntries.userId, parseInt(userId)),
           sql`date >= ${startDate}`,
           sql`date <= ${endDate}`
         )
