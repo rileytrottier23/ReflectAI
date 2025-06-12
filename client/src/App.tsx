@@ -9,6 +9,7 @@ import Journal from "@/pages/journal";
 import CounselorReports from "@/pages/counselor-reports";
 import Auth from "@/pages/auth";
 import PrivacyPolicy from "@/pages/privacy-policy";
+import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
     <Switch>
       <Route path="/auth" component={Auth} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/contact" component={Contact} />
       {user ? (
         <>
           <Route path="/" component={Journal} />

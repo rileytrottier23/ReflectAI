@@ -5,6 +5,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import NavigationHeader from "@/components/navigation-header";
 import CalendarWidget from "@/components/calendar-widget";
 import JournalEntryForm from "@/components/journal-entry-form";
+import Footer from "@/components/footer";
 
 export default function Journal() {
   const { toast } = useToast();
@@ -64,6 +65,8 @@ export default function Journal() {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }

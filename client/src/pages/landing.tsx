@@ -148,7 +148,9 @@ export default function Landing() {
               <span className="font-display font-bold text-white text-2xl">ReflectAI</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-beige-100">
-              <span>Contact</span>
+              <Link href="/contact">
+                <span className="hover:text-white cursor-pointer transition-colors">Contact</span>
+              </Link>
               <Link href="/privacy-policy">
                 <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
               </Link>
