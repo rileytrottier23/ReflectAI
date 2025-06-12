@@ -38,7 +38,7 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: new PostgresSessionStore({
       conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
+      createTableIfMissing: true,
       tableName: "sessions",
     }),
     cookie: {
@@ -82,6 +82,17 @@ export function setupAuth(app: Express) {
     try {
       const { email, password } = req.body;
       
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Please enter a valid email address" });
+      }
+      
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ message: "Email already exists" });
@@ -93,16 +104,35 @@ export function setupAuth(app: Express) {
       });
 
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error('Login error after registration:', err);
+          return next(err);
+        }
         res.status(201).json({ id: user.id, email: user.email });
       });
     } catch (error) {
+      console.error('Registration error:', error);
       res.status(500).json({ message: "Registration failed" });
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json({ id: req.user!.id, email: req.user!.email });
+  app.post("/api/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error('Login authentication error:', err);
+        return res.status(500).json({ message: "Authentication failed" });
+      }
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login session error:', err);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        res.status(200).json({ id: user.id, email: user.email });
+      });
+    })(req, res, next);
   });
 
   app.post("/api/logout", (req, res, next) => {

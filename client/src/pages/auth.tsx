@@ -70,13 +70,21 @@ export default function Auth() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
+      console.log("Attempting registration with:", { email: data.email });
       const response = await apiRequest("POST", "/api/register", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (userData) => {
+      console.log("Registration successful:", userData);
+      toast({
+        title: "Registration successful",
+        description: "Welcome to ReflectAI!",
+        variant: "default",
+      });
       window.location.href = "/";
     },
     onError: (error: Error) => {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error.message,

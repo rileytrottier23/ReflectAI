@@ -18,17 +18,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   setupAuth(app);
 
-  // Auth routes
-  app.get('/api/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id.toString();
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // User routes are handled by setupAuth in auth.ts
 
   // Journal entry routes
   app.get("/api/journal/entries", isAuthenticated, async (req: any, res) => {
