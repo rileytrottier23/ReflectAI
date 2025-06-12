@@ -66,7 +66,17 @@ export default function CounselorReports() {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const text = await response.text();
+        let message = text;
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed.message) {
+            message = parsed.message;
+          }
+        } catch {
+          message = "We couldn't generate your report right now. Please try again";
+        }
+        throw new Error(message);
       }
       
       return await response.json();
@@ -139,8 +149,8 @@ export default function CounselorReports() {
     
     if (selectedMonthEntries.length < 7) {
       toast({
-        title: "Insufficient Entries",
-        description: `You need at least 7 journal entries to generate a counselor report. You currently have ${selectedMonthEntries.length} entries for this month.`,
+        title: "Not enough entries",
+        description: `You need at least 7 journal entries to generate a report. You have ${selectedMonthEntries.length} entries for this month.`,
         variant: "destructive",
       });
       return;
