@@ -1,18 +1,100 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sprout, Eye, EyeOff, Check, X } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const registerSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/\d/, "Password must contain a number")
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain a special character"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { toast } = useToast();
 
-  // Password strength requirements
+  const loginForm = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const registerForm = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginFormData) => {
+      const response = await apiRequest("POST", "/api/login", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      window.location.href = "/";
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterFormData) => {
+      const response = await apiRequest("POST", "/api/register", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      window.location.href = "/";
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onLoginSubmit = (data: LoginFormData) => {
+    loginMutation.mutate(data);
+  };
+
+  const onRegisterSubmit = (data: RegisterFormData) => {
+    registerMutation.mutate(data);
+  };
+
+  const password = isLogin ? loginForm.watch("password") : registerForm.watch("password");
+
+  // Password strength requirements for registration
   const requirements = [
     { label: "At least 8 characters", test: (pwd: string) => pwd.length >= 8 },
     { label: "Contains uppercase letter", test: (pwd: string) => /[A-Z]/.test(pwd) },
@@ -20,28 +102,6 @@ export default function Auth() {
     { label: "Contains number", test: (pwd: string) => /\d/.test(pwd) },
     { label: "Contains special character", test: (pwd: string) => /[!@#$%^&*(),.?":{}|<>]/.test(pwd) },
   ];
-
-  const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // For registration, validate password requirements and matching
-    if (!isLogin) {
-      const allRequirementsMet = requirements.every(req => req.test(password));
-      if (!allRequirementsMet || !passwordsMatch) {
-        return;
-      }
-    }
-    
-    // Redirect to Replit auth
-    window.location.href = "/api/login";
-  };
-
-  // Check if form is valid for submission
-  const isFormValid = isLogin || (
-    requirements.every(req => req.test(password)) && passwordsMatch
-  );
 
   return (
     <div className="min-h-screen bg-beige-200 flex items-center justify-center p-4">
@@ -59,30 +119,142 @@ export default function Auth() {
         <Card className="border-beige-300 bg-white shadow-lg">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl font-display font-semibold text-black">
-              Sign in with Replit
+              {isLogin ? "Welcome Back" : "Create Account"}
             </CardTitle>
             <p className="text-gray-600 text-sm mt-2">
-              ReflectAI uses Replit's secure authentication system
+              {isLogin 
+                ? "Sign in to continue your journaling journey" 
+                : "Start your mindful reflection practice"
+              }
             </p>
           </CardHeader>
           
           <CardContent>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="text-sm font-medium text-blue-800 mb-2">How to get started:</h3>
-              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-                <li>Click "Continue with Replit" below</li>
-                <li>Create a free Replit account if you don't have one</li>
-                <li>Return to ReflectAI and start journaling</li>
-              </ol>
-            </div>
-            
-              <Button
-                onClick={() => window.location.href = "/api/login"}
-                className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
-              >
-                Continue with Replit
-              </Button>
-            </div>
+            {isLogin ? (
+              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                <div>
+                  <Label htmlFor="username" className="text-sm font-medium text-black">
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    {...loginForm.register("username")}
+                    placeholder="Enter your username"
+                    className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                  {loginForm.formState.errors.username && (
+                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.username.message}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="password" className="text-sm font-medium text-black">
+                    Password
+                  </Label>
+                  <div className="relative mt-1">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      {...loginForm.register("password")}
+                      placeholder="Enter your password"
+                      className="border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {loginForm.formState.errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.password.message}</p>
+                  )}
+                </div>
+                
+                <Button
+                  type="submit"
+                  disabled={loginMutation.isPending}
+                  className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
+                >
+                  {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                <div>
+                  <Label htmlFor="username" className="text-sm font-medium text-black">
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    {...registerForm.register("username")}
+                    placeholder="Choose a username"
+                    className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+                  />
+                  {registerForm.formState.errors.username && (
+                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.username.message}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="password" className="text-sm font-medium text-black">
+                    Password
+                  </Label>
+                  <div className="relative mt-1">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      {...registerForm.register("password")}
+                      placeholder="Create a strong password"
+                      className="border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {registerForm.formState.errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.password.message}</p>
+                  )}
+                </div>
+
+                {/* Password Requirements */}
+                {password && password.length > 0 && (
+                  <div className="bg-beige-100 p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-black mb-2">Password Requirements:</h4>
+                    <div className="space-y-1">
+                      {requirements.map((req, index) => {
+                        const isMet = req.test(password);
+                        return (
+                          <div key={index} className="flex items-center text-xs">
+                            {isMet ? (
+                              <Check className="w-3 h-3 text-sage-600 mr-2" />
+                            ) : (
+                              <X className="w-3 h-3 text-gray-400 mr-2" />
+                            )}
+                            <span className={isMet ? 'text-sage-600' : 'text-gray-600'}>
+                              {req.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                <Button
+                  type="submit"
+                  disabled={registerMutation.isPending}
+                  className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
+                >
+                  {registerMutation.isPending ? "Creating Account..." : "Create Account"}
+                </Button>
+              </form>
+            )}
             
             <div className="mt-6 text-center">
               <span className="text-gray-600 text-sm">

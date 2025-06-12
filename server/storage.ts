@@ -2,7 +2,7 @@ import {
   users,
   journalEntries,
   type User,
-  type UpsertUser,
+  type InsertUser,
   type JournalEntry,
   type InsertJournalEntry,
   type UpdateJournalEntry,
@@ -13,9 +13,9 @@ import { eq, and, desc, sql } from "drizzle-orm";
 // Interface for storage operations
 export interface IStorage {
   // User operations
-  // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   
   // Journal operations
   getJournalEntry(userId: string, date: string): Promise<JournalEntry | undefined>;
