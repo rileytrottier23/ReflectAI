@@ -109,7 +109,7 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <Link href="/">
+          <Link href="/" className="inline-block">
             <div className="flex items-center justify-center mb-4 cursor-pointer hover:opacity-80 transition-opacity">
               <Sprout className="text-sage-600 h-12 w-12 mr-3" />
               <h1 className="text-4xl font-display font-bold text-black">ReflectAI</h1>
@@ -136,17 +136,18 @@ export default function Auth() {
             {isLogin ? (
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <div>
-                  <Label htmlFor="username" className="text-sm font-medium text-black">
-                    Username
+                  <Label htmlFor="email" className="text-sm font-medium text-black">
+                    Email Address
                   </Label>
                   <Input
-                    id="username"
-                    {...loginForm.register("username")}
-                    placeholder="Enter your username"
+                    id="email"
+                    {...loginForm.register("email")}
+                    placeholder="Enter your email"
+                    type="email"
                     className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
                   />
-                  {loginForm.formState.errors.username && (
-                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.username.message}</p>
+                  {loginForm.formState.errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.email.message}</p>
                   )}
                 </div>
                 
@@ -186,17 +187,18 @@ export default function Auth() {
             ) : (
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <div>
-                  <Label htmlFor="username" className="text-sm font-medium text-black">
-                    Username
+                  <Label htmlFor="email" className="text-sm font-medium text-black">
+                    Email Address
                   </Label>
                   <Input
-                    id="username"
-                    {...registerForm.register("username")}
-                    placeholder="Choose a username"
+                    id="email"
+                    {...registerForm.register("email")}
+                    placeholder="Enter your email"
+                    type="email"
                     className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
                   />
-                  {registerForm.formState.errors.username && (
-                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.username.message}</p>
+                  {registerForm.formState.errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.email.message}</p>
                   )}
                 </div>
                 
