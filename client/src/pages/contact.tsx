@@ -52,16 +52,6 @@ export default function Contact() {
                 We typically respond within 24-48 hours during business days.
               </p>
             </div>
-            
-            <div className="flex justify-center">
-              <Button 
-                onClick={() => window.location.href = 'mailto:riley.a.trottier@gmail.com'}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2"
-              >
-                <Mail className="w-4 h-4 mr-2" />
-                Send Email
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
