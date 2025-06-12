@@ -126,15 +126,15 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
         minute: '2-digit' 
       }));
       toast({
-        title: "Success",
-        description: "Journal entry saved successfully",
+        title: "Saved",
+        description: "Your journal entry has been saved",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Session expired",
+          description: "Please log in again to continue",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -143,8 +143,8 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
         return;
       }
       toast({
-        title: "Error",
-        description: "Failed to save journal entry",
+        title: "Unable to save",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -165,15 +165,15 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
       setHappinessValue([7]);
       setLastSaved(null);
       toast({
-        title: "Success",
-        description: "Journal entry deleted successfully",
+        title: "Deleted",
+        description: "Your journal entry has been deleted",
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Session expired",
+          description: "Please log in again to continue",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -182,8 +182,8 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
         return;
       }
       toast({
-        title: "Error",
-        description: "Failed to delete journal entry",
+        title: "Unable to delete",
+        description: error.message,
         variant: "destructive",
       });
     },
