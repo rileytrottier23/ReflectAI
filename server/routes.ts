@@ -11,7 +11,7 @@ function isAuthenticated(req: any, res: any, next: any) {
   if (req.isAuthenticated()) {
     return next();
   }
-  res.status(401).json({ message: "Unauthorized" });
+  res.status(401).json({ message: "Please log in to continue" });
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -47,13 +47,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entry = await storage.getJournalEntry(userId, date);
       
       if (!entry) {
-        return res.status(404).json({ message: "Journal entry not found" });
+        return res.status(404).json({ message: "No journal entry found for this date" });
       }
       
       res.json(entry);
     } catch (error) {
       console.error("Error fetching journal entry:", error);
-      res.status(500).json({ message: "Failed to fetch journal entry" });
+      res.status(500).json({ message: "We couldn't load your journal entry. Please try again" });
     }
   });
 
@@ -65,17 +65,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if entry already exists for this date
       const existingEntry = await storage.getJournalEntry(userId, validatedData.date);
       if (existingEntry) {
-        return res.status(400).json({ message: "Journal entry already exists for this date" });
+        return res.status(400).json({ message: "You already have a journal entry for this date" });
       }
       
       const entry = await storage.createJournalEntry(userId, validatedData);
       res.json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
       }
       console.error("Error creating journal entry:", error);
-      res.status(500).json({ message: "Failed to create journal entry" });
+      res.status(500).json({ message: "We couldn't save your journal entry. Please try again" });
     }
   });
 
@@ -86,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
-        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+        return res.status(400).json({ message: "Please select a valid date" });
       }
       
       const validatedData = updateJournalEntrySchema.parse(req.body);
@@ -95,10 +95,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
       }
       console.error("Error updating journal entry:", error);
-      res.status(500).json({ message: "Failed to update journal entry" });
+      res.status(500).json({ message: "We couldn't update your journal entry. Please try again" });
     }
   });
 
@@ -109,14 +109,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
-        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+        return res.status(400).json({ message: "Please select a valid date" });
       }
       
       await storage.deleteJournalEntry(userId, date);
       res.json({ message: "Journal entry deleted successfully" });
     } catch (error) {
       console.error("Error deleting journal entry:", error);
-      res.status(500).json({ message: "Failed to delete journal entry" });
+      res.status(500).json({ message: "We couldn't delete your journal entry. Please try again" });
     }
   });
 
@@ -129,14 +129,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const monthNum = parseInt(month);
       
       if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12 || yearNum < 1900 || yearNum > 2100) {
-        return res.status(400).json({ message: "Invalid year or month parameters" });
+        return res.status(400).json({ message: "Please select a valid month and year" });
       }
       
       const entries = await storage.getUserJournalEntriesByMonth(userId, yearNum, monthNum);
       res.json(entries);
     } catch (error) {
       console.error("Error fetching monthly journal entries:", error);
-      res.status(500).json({ message: "Failed to fetch monthly journal entries" });
+      res.status(500).json({ message: "We couldn't load your journal entries. Please try again" });
     }
   });
 
