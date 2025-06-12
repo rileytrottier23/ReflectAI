@@ -79,6 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.clear();
+      // Force redirect to landing page after logout
+      window.location.href = "/";
     },
     onError: (error: Error) => {
       toast({
