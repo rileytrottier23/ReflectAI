@@ -29,7 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Don't show toast errors for authentication - handle them silently
+  if (error && !error.message.includes("401")) {
+    console.error("Auth error:", error);
+  }
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
