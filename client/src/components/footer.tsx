@@ -10,14 +10,14 @@ export default function Footer() {
           </div>
           <div className="flex space-x-6">
             <Link href="/privacy-policy">
-              <a className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <span className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
                 Privacy Policy
-              </a>
+              </span>
             </Link>
             <Link href="/contact">
-              <a className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+              <span className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
                 Contact Support
-              </a>
+              </span>
             </Link>
           </div>
         </div>
