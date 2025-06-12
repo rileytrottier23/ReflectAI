@@ -18,14 +18,14 @@ function Router() {
     <Switch>
       <Route path="/auth" component={Auth} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
-      {isLoading || !user ? (
-        <Route path="/" component={Landing} />
-      ) : (
+      {user ? (
         <>
           <Route path="/" component={Journal} />
           <Route path="/journal" component={Journal} />
           <Route path="/counselor-reports" component={CounselorReports} />
         </>
+      ) : (
+        <Route path="/" component={Landing} />
       )}
       <Route component={NotFound} />
     </Switch>
