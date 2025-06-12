@@ -40,12 +40,17 @@ export function setupAuth(app: Express) {
       conString: process.env.DATABASE_URL,
       createTableIfMissing: true,
       tableName: "sessions",
+      pruneSessionInterval: 60, // Prune expired sessions every 60 seconds
+      errorLog: console.error.bind(console),
     }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+      sameSite: 'lax',
     },
+    name: 'connect.sid', // Explicit session cookie name
+    rolling: true, // Reset expiration on activity
   };
 
   app.set("trust proxy", 1);
@@ -138,7 +143,13 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      // Destroy the session completely
+      req.session.destroy((err) => {
+        if (err) return next(err);
+        // Clear the session cookie
+        res.clearCookie('connect.sid');
+        res.sendStatus(200);
+      });
     });
   });
 
