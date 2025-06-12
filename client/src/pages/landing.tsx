@@ -1,4 +1,5 @@
 import { Sprout, BookOpen, TrendingUp, Star } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -144,7 +145,9 @@ export default function Landing() {
             </div>
             <div className="flex items-center space-x-6 text-sm text-beige-100">
               <span>Contact</span>
-              <span>Privacy Policy</span>
+              <Link href="/privacy-policy">
+                <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+              </Link>
             </div>
           </div>
           <div className="mt-4 text-center text-sm text-beige-100">

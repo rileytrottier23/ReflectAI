@@ -8,6 +8,7 @@ import Landing from "@/pages/landing";
 import Journal from "@/pages/journal";
 import CounselorReports from "@/pages/counselor-reports";
 import Auth from "@/pages/auth";
+import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={Auth} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (

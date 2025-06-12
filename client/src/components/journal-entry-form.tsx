@@ -293,22 +293,6 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
                     style={{ width: `${(happinessValue[0] / 10) * 100}%` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-2">
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <button
-                      key={i + 1}
-                      type="button"
-                      onClick={() => handleHappinessChange([i + 1])}
-                      className={`w-6 h-6 rounded-full text-xs font-medium transition-colors ${
-                        happinessValue[0] === i + 1 
-                          ? 'bg-sage-500 text-white' 
-                          : 'bg-beige-200 text-gray-600 hover:bg-beige-300'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
