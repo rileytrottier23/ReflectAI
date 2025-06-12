@@ -301,8 +301,29 @@ export default function Auth() {
         
         <div className="text-center mt-8">
           <p className="text-sm text-gray-600">
-            Need help? <span className="text-sage-600 hover:text-sage-700 cursor-pointer">Contact Support</span>
+            Need help? <Link href="/contact"><span className="text-sage-600 hover:text-sage-700 cursor-pointer">Contact Support</span></Link>
           </p>
+        </div>
+        
+        {/* Footer */}
+        <div className="mt-12 pt-8 border-t border-beige-300">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="text-sm text-gray-600">
+              © 2025 ReflectAI. All rights reserved.
+            </div>
+            <div className="flex space-x-6">
+              <Link href="/privacy-policy">
+                <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
+                  Privacy Policy
+                </span>
+              </Link>
+              <Link href="/contact">
+                <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
+                  Contact Support
+                </span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
