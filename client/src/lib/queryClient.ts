@@ -3,7 +3,35 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    
+    // Try to parse JSON response for user-friendly message
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.message) {
+        message = parsed.message;
+      }
+    } catch {
+      // If not JSON, use the raw text or create user-friendly message based on status
+      switch (res.status) {
+        case 401:
+          message = "Please log in to continue";
+          break;
+        case 403:
+          message = "You don't have permission to do this";
+          break;
+        case 404:
+          message = "The requested information wasn't found";
+          break;
+        case 500:
+          message = "Something went wrong on our end. Please try again";
+          break;
+        default:
+          message = text || "Something went wrong. Please try again";
+      }
+    }
+    
+    throw new Error(message);
   }
 }
 

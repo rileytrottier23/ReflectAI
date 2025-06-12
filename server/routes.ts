@@ -41,7 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
-        return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD" });
+        return res.status(400).json({ message: "Please select a valid date" });
       }
       
       const entry = await storage.getJournalEntry(userId, date);
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.deleteJournalEntry(userId, date);
-      res.json({ message: "Journal entry deleted successfully" });
+      res.json({ message: "Your journal entry has been deleted" });
     } catch (error) {
       console.error("Error deleting journal entry:", error);
       res.status(500).json({ message: "We couldn't delete your journal entry. Please try again" });
@@ -147,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { month, year } = req.body;
       
       if (!month || !year || month < 1 || month > 12 || year < 1900 || year > 2100) {
-        return res.status(400).json({ message: "Valid month and year are required" });
+        return res.status(400).json({ message: "Please select a valid month and year" });
       }
       
       // Get journal entries for the specified month
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(report);
     } catch (error) {
       console.error("Error generating counselor report:", error);
-      res.status(500).json({ message: "Failed to generate report" });
+      res.status(500).json({ message: "We couldn't generate your report right now. Please try again" });
     }
   });
 
