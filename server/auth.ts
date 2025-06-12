@@ -85,18 +85,18 @@ export function setupAuth(app: Express) {
       
       // Validate input
       if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ message: "Please enter both your email and password" });
       }
       
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: "Please enter a valid email address" });
+        return res.status(400).json({ message: "Please check your email address format" });
       }
       
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: "Email already exists" });
+        return res.status(400).json({ message: "An account with this email already exists" });
       }
 
       const user = await storage.createUser({
@@ -113,7 +113,7 @@ export function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ message: "Registration failed" });
+      res.status(500).json({ message: "We couldn't create your account right now. Please try again" });
     }
   });
 
@@ -121,15 +121,15 @@ export function setupAuth(app: Express) {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         console.error('Login authentication error:', err);
-        return res.status(500).json({ message: "Authentication failed" });
+        return res.status(500).json({ message: "Something went wrong during login. Please try again" });
       }
       if (!user) {
-        return res.status(401).json({ message: "Invalid email or password" });
+        return res.status(401).json({ message: "Your email or password is incorrect" });
       }
       req.login(user, (err) => {
         if (err) {
           console.error('Login session error:', err);
-          return res.status(500).json({ message: "Login failed" });
+          return res.status(500).json({ message: "We couldn't log you in right now. Please try again" });
         }
         res.status(200).json({ id: user.id, email: user.email });
       });
