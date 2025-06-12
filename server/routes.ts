@@ -15,6 +15,11 @@ function isAuthenticated(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Test endpoint to verify server is working
+  app.get('/api/test', (req, res) => {
+    res.json({ message: 'Server is working', timestamp: new Date().toISOString() });
+  });
+
   // Auth middleware
   setupAuth(app);
 
