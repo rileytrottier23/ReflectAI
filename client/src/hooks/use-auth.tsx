@@ -83,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], null);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.clear();
-      // Navigate to auth page after logout using React router
-      setLocation("/auth");
+      // Navigate to landing page after logout using React router
+      setLocation("/");
     },
     onError: (error: Error) => {
       toast({
