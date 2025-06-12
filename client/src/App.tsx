@@ -14,6 +14,8 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { user, isLoading } = useAuth();
 
+  console.log("Router state:", { user, isLoading, userExists: !!user });
+
   return (
     <Switch>
       <Route path="/auth" component={Auth} />
