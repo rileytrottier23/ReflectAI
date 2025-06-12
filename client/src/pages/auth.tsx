@@ -59,165 +59,30 @@ export default function Auth() {
         <Card className="border-beige-300 bg-white shadow-lg">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl font-display font-semibold text-black">
-              {isLogin ? "Welcome Back" : "Create Account"}
+              Sign in with Replit
             </CardTitle>
             <p className="text-gray-600 text-sm mt-2">
-              {isLogin 
-                ? "Sign in to continue your journaling journey" 
-                : "Start your mindful reflection practice"
-              }
+              ReflectAI uses Replit's secure authentication system
             </p>
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="name" className="text-sm font-medium text-black">
-                    Full Name
-                  </Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
-                    defaultValue=""
-                    required
-                  />
-                </div>
-              )}
-              
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-black">
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
-                  defaultValue=""
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="password" className="text-sm font-medium text-black">
-                  Password
-                </Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {!isLogin && (
-                <>
-                  <div>
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-black">
-                      Confirm Password
-                    </Label>
-                    <div className="relative mt-1">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm your password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={`border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10 ${
-                          confirmPassword.length > 0 && !passwordsMatch 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                            : ''
-                        }`}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    {confirmPassword.length > 0 && !passwordsMatch && (
-                      <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
-                    )}
-                    {passwordsMatch && (
-                      <p className="text-sage-600 text-xs mt-1 flex items-center">
-                        <Check className="w-3 h-3 mr-1" />
-                        Passwords match
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Password Requirements */}
-                  {password.length > 0 && (
-                    <div className="bg-beige-100 p-3 rounded-lg">
-                      <h4 className="text-sm font-medium text-black mb-2">Password Requirements:</h4>
-                      <div className="space-y-1">
-                        {requirements.map((req, index) => {
-                          const isMet = req.test(password);
-                          return (
-                            <div key={index} className="flex items-center text-xs">
-                              {isMet ? (
-                                <Check className="w-3 h-3 text-sage-600 mr-2" />
-                              ) : (
-                                <X className="w-3 h-3 text-gray-400 mr-2" />
-                              )}
-                              <span className={isMet ? 'text-sage-600' : 'text-gray-600'}>
-                                {req.label}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-              
-              {isLogin && (
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="rounded border-beige-300 text-sage-500 focus:ring-sage-500" />
-                    <span className="ml-2 text-gray-600">Remember me</span>
-                  </label>
-                  <button type="button" className="text-sage-600 hover:text-sage-700 font-medium">
-                    Forgot password?
-                  </button>
-                </div>
-              )}
-              
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">How to get started:</h3>
+              <ol className="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+                <li>Click "Continue with Replit" below</li>
+                <li>Create a free Replit account if you don't have one</li>
+                <li>Return to ReflectAI and start journaling</li>
+              </ol>
+            </div>
+            
               <Button
-                type="submit"
-                disabled={!isFormValid}
-                className="w-full bg-sage-500 hover:bg-sage-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 text-base font-medium"
+                onClick={() => window.location.href = "/api/login"}
+                className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
               >
-                {isLogin ? "Sign In" : "Create Account"}
+                Continue with Replit
               </Button>
-            </form>
+            </div>
             
             <div className="mt-6 text-center">
               <span className="text-gray-600 text-sm">
