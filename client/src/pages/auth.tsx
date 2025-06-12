@@ -70,7 +70,7 @@ export default function Auth() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
+        title: "Unable to log in",
         description: error.message,
         variant: "destructive",
       });
@@ -86,8 +86,8 @@ export default function Auth() {
     onSuccess: (userData) => {
       console.log("Registration successful:", userData);
       toast({
-        title: "Registration successful",
-        description: "Welcome to ReflectAI!",
+        title: "Welcome to ReflectAI!",
+        description: "Your account has been created successfully",
         variant: "default",
       });
       window.location.href = "/";
@@ -95,7 +95,7 @@ export default function Auth() {
     onError: (error: Error) => {
       console.error("Registration error:", error);
       toast({
-        title: "Registration failed",
+        title: "Unable to create account",
         description: error.message,
         variant: "destructive",
       });
