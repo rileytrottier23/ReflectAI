@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,12 +13,12 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
 const registerSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string()
     .min(8, "Password must be at least 8 characters")
     .regex(/[A-Z]/, "Password must contain an uppercase letter")
@@ -37,7 +38,7 @@ export default function Auth() {
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -45,7 +46,7 @@ export default function Auth() {
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -108,10 +109,12 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Sprout className="text-sage-600 h-12 w-12 mr-3" />
-            <h1 className="text-4xl font-display font-bold text-black">ReflectAI</h1>
-          </div>
+          <Link href="/">
+            <div className="flex items-center justify-center mb-4 cursor-pointer hover:opacity-80 transition-opacity">
+              <Sprout className="text-sage-600 h-12 w-12 mr-3" />
+              <h1 className="text-4xl font-display font-bold text-black">ReflectAI</h1>
+            </div>
+          </Link>
           <p className="text-gray-700 text-lg">Your personal journaling companion</p>
         </div>
 
