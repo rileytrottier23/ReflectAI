@@ -248,10 +248,7 @@ export default function CounselorReports() {
                   return (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span>Entries for {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}:</span>
-                        <span className={`font-medium ${selectedMonthEntries.length >= 7 ? 'text-sage-600' : 'text-amber-600'}`}>
-                          {selectedMonthEntries.length} / 7 required
-                        </span>
+                        <span>Entries for {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                       </div>
                       <div className="text-xs">
                         {selectedMonthEntries.length < 7 && (
