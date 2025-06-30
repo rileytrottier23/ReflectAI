@@ -7,6 +7,7 @@ import { Save, Trash2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import SpellCheckTextarea from "@/components/spell-check-textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -302,10 +303,12 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
             <Label className="text-sm font-medium text-black mb-3 block">
               Journal Entry
             </Label>
-            <Textarea
-              {...form.register("content")}
+            <SpellCheckTextarea
+              value={form.watch("content")}
+              onChange={(value) => form.setValue("content", value)}
               placeholder="What's on your mind today? Share your thoughts, experiences, and reflections..."
-              className="min-h-[200px] resize-none border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+              className="min-h-[200px] border-beige-300 focus:ring-sage-500 focus:border-sage-500"
+              name="content"
             />
             <div className="flex justify-between items-center mt-2">
               <p className="text-xs text-gray-600">{wordCount} words</p>
