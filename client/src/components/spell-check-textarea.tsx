@@ -44,201 +44,89 @@ export default function SpellCheckTextarea({
   const [ignoredWords, setIgnoredWords] = useState<Set<string>>(new Set());
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Common English words that should not be flagged as misspelled
+  // Common English words - basic spell check dictionary
   const commonWords = new Set([
-    'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from',
-    'up', 'about', 'into', 'over', 'after', 'beneath', 'under', 'above', 'through',
-    'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over',
-    'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where',
-    'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other',
-    'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too',
-    'very', 'can', 'will', 'just', 'should', 'now',
+    'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
     'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
-    'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'ours', 'theirs',
-    'this', 'that', 'these', 'those', 'a', 'an', 'am', 'is', 'are', 'was', 'were',
-    'be', 'being', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-    'could', 'should', 'may', 'might', 'can', 'must', 'shall', 'going', 'want', 'need',
-    'like', 'know', 'think', 'feel', 'see', 'hear', 'say', 'get', 'make', 'go', 'come',
-    'take', 'give', 'work', 'play', 'run', 'walk', 'talk', 'look', 'find', 'keep',
-    'start', 'stop', 'help', 'show', 'move', 'live', 'believe', 'bring', 'happen',
-    'write', 'provide', 'sit', 'stand', 'lose', 'pay', 'meet', 'include', 'continue',
-    'set', 'learn', 'change', 'lead', 'understand', 'watch', 'follow', 'stop', 'create',
-    'speak', 'read', 'allow', 'add', 'spend', 'grow', 'open', 'walk', 'win', 'offer',
-    'remember', 'love', 'consider', 'appear', 'buy', 'wait', 'serve', 'die', 'send',
-    'expect', 'build', 'stay', 'fall', 'cut', 'reach', 'kill', 'remain', 'suggest',
-    'raise', 'pass', 'sell', 'require', 'report', 'decide', 'pull', 'return', 'explain',
-    'hope', 'develop', 'carry', 'break', 'receive', 'agree', 'support', 'hit', 'produce',
-    'eat', 'cover', 'catch', 'draw', 'choose', 'cause', 'point', 'plan', 'wear', 'increase',
-    'result', 'change', 'morning', 'evening', 'night', 'today', 'tomorrow', 'yesterday',
-    'week', 'month', 'year', 'time', 'day', 'hour', 'minute', 'moment', 'second',
-    'home', 'house', 'room', 'door', 'window', 'car', 'phone', 'computer', 'book',
-    'table', 'chair', 'food', 'water', 'coffee', 'tea', 'money', 'job', 'work',
-    'school', 'family', 'friend', 'person', 'people', 'man', 'woman', 'child',
-    'good', 'bad', 'great', 'small', 'big', 'large', 'little', 'long', 'short',
-    'high', 'low', 'hot', 'cold', 'warm', 'cool', 'new', 'old', 'young', 'easy',
-    'hard', 'simple', 'difficult', 'important', 'different', 'same', 'right', 'wrong',
-    'true', 'false', 'real', 'sure', 'possible', 'early', 'late', 'ready', 'happy',
-    'sad', 'angry', 'excited', 'tired', 'busy', 'free', 'available', 'interested',
-    'surprised', 'worried', 'scared', 'safe', 'dangerous', 'careful', 'beautiful',
-    'nice', 'pretty', 'ugly', 'clean', 'dirty', 'quiet', 'loud', 'fast', 'slow',
-    'strong', 'weak', 'healthy', 'sick', 'full', 'empty', 'rich', 'poor', 'cheap',
-    'expensive', 'free', 'open', 'closed', 'public', 'private', 'special', 'normal',
-    'strange', 'funny', 'serious', 'social', 'personal', 'professional', 'natural',
-    'human', 'animal', 'plant', 'tree', 'flower', 'grass', 'water', 'fire', 'air',
-    'earth', 'sun', 'moon', 'star', 'sky', 'cloud', 'rain', 'snow', 'wind', 'weather'
+    'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those',
+    'a', 'an', 'am', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'have', 'has',
+    'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might',
+    'can', 'must', 'shall', 'not', 'no', 'yes', 'all', 'any', 'some', 'many', 'much',
+    'more', 'most', 'few', 'little', 'good', 'bad', 'great', 'big', 'small', 'new',
+    'old', 'first', 'last', 'long', 'short', 'high', 'low', 'right', 'left', 'next',
+    'other', 'same', 'different', 'own', 'only', 'very', 'well', 'still', 'just',
+    'now', 'here', 'there', 'where', 'when', 'why', 'how', 'what', 'who', 'which',
+    'get', 'go', 'come', 'give', 'take', 'make', 'know', 'think', 'see', 'look',
+    'want', 'need', 'like', 'feel', 'work', 'play', 'live', 'help', 'find', 'call',
+    'try', 'ask', 'seem', 'turn', 'start', 'show', 'hear', 'put', 'keep', 'let',
+    'say', 'tell', 'talk', 'sit', 'stand', 'walk', 'run', 'move', 'stop', 'wait',
+    'stay', 'leave', 'open', 'close', 'read', 'write', 'eat', 'drink', 'sleep',
+    'wake', 'buy', 'sell', 'pay', 'cost', 'spend', 'save', 'win', 'lose', 'break',
+    'fix', 'build', 'create', 'destroy', 'kill', 'die', 'live', 'grow', 'change',
+    'learn', 'teach', 'study', 'understand', 'remember', 'forget', 'believe',
+    'hope', 'wish', 'dream', 'plan', 'decide', 'choose', 'pick', 'use', 'wear',
+    'carry', 'bring', 'send', 'receive', 'catch', 'throw', 'hit', 'kick', 'push',
+    'pull', 'lift', 'drop', 'fall', 'rise', 'climb', 'jump', 'dance', 'sing',
+    'laugh', 'cry', 'smile', 'love', 'hate', 'like', 'enjoy', 'prefer', 'care',
+    'worry', 'fear', 'hope', 'expect', 'suppose', 'guess', 'imagine', 'wonder',
+    'time', 'day', 'week', 'month', 'year', 'hour', 'minute', 'second', 'moment',
+    'today', 'tomorrow', 'yesterday', 'morning', 'afternoon', 'evening', 'night',
+    'home', 'house', 'room', 'door', 'window', 'wall', 'floor', 'roof', 'garden',
+    'car', 'bus', 'train', 'plane', 'bike', 'boat', 'road', 'street', 'city',
+    'town', 'country', 'world', 'place', 'area', 'space', 'office', 'school',
+    'hospital', 'store', 'shop', 'restaurant', 'hotel', 'bank', 'church', 'park',
+    'person', 'people', 'man', 'woman', 'child', 'baby', 'boy', 'girl', 'friend',
+    'family', 'parent', 'mother', 'father', 'son', 'daughter', 'brother', 'sister',
+    'husband', 'wife', 'doctor', 'teacher', 'student', 'worker', 'job', 'work',
+    'money', 'food', 'water', 'coffee', 'tea', 'milk', 'bread', 'meat', 'fish',
+    'book', 'paper', 'pen', 'pencil', 'computer', 'phone', 'television', 'music',
+    'movie', 'game', 'sport', 'ball', 'team', 'player', 'win', 'game', 'play',
+    'happy', 'sad', 'angry', 'excited', 'tired', 'busy', 'free', 'ready', 'easy',
+    'hard', 'difficult', 'simple', 'important', 'interesting', 'boring', 'fun',
+    'nice', 'beautiful', 'ugly', 'clean', 'dirty', 'quiet', 'loud', 'fast', 'slow'
   ]);
 
-  // Common typos and their corrections
-  const commonCorrections: { [key: string]: string[] } = {
+  // Common typo corrections
+  const typoCorrections: Record<string, string[]> = {
     'teh': ['the'],
     'adn': ['and'],
-    'youre': ["you're", 'your'],
     'recieve': ['receive'],
     'seperate': ['separate'],
     'definately': ['definitely'],
-    'occured': ['occurred'],
-    'neccessary': ['necessary'],
     'beleive': ['believe'],
-    'wierd': ['weird'],
     'freind': ['friend'],
-    'accomodate': ['accommodate'],
-    'embarass': ['embarrass'],
-    'maintenence': ['maintenance'],
-    'recomend': ['recommend'],
-    'wich': ['which', 'witch'],
-    'loose': ['lose'],
+    'wich': ['which'],
     'alot': ['a lot'],
-    'untill': ['until'],
     'tommorow': ['tomorrow'],
-    'occassion': ['occasion'],
-    'begining': ['beginning'],
-    'goverment': ['government'],
-    'enviroment': ['environment'],
-    'buisness': ['business'],
-    'calender': ['calendar'],
-    'cemetary': ['cemetery'],
-    'definitly': ['definitely'],
-    'desparate': ['desperate'],
-    'exagerate': ['exaggerate'],
-    'existance': ['existence'],
-    'fourty': ['forty'],
-    'gaurd': ['guard'],
-    'independant': ['independent'],
-    'jewelery': ['jewelry'],
-    'knowlege': ['knowledge'],
-    'liesure': ['leisure'],
-    'lightening': ['lightning'],
-    'neice': ['niece'],
-    'occurance': ['occurrence'],
-    'perseverence': ['perseverance'],
-    'priviledge': ['privilege'],
-    'publically': ['publicly'],
-    'refered': ['referred'],
-    'relevent': ['relevant'],
-    'religous': ['religious'],
-    'rythm': ['rhythm'],
-    'sciense': ['science'],
-    'truely': ['truly'],
-    'writen': ['written']
+    'youre': ['you\'re', 'your'],
+    'its': ['it\'s', 'its'],
+    'there': ['their', 'they\'re'],
+    'loose': ['lose'],
+    'than': ['then'],
+    'effect': ['affect'],
+    'accept': ['except']
   };
 
-  // Check if a word is correctly spelled
-  const isWordCorrect = useCallback((word: string): boolean => {
+  // Check if word is misspelled
+  const isWordMisspelled = useCallback((word: string): boolean => {
     const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
     
-    // Skip very short words, numbers, or empty strings
-    if (cleanWord.length < 2 || /\d/.test(word)) {
-      return true;
-    }
-
-    // Check if word is in ignored list
-    if (ignoredWords.has(cleanWord)) {
-      return true;
-    }
-
-    // Check against common words
-    if (commonWords.has(cleanWord)) {
-      return true;
-    }
-
-    // Check if it's a known typo
-    if (commonCorrections[cleanWord]) {
-      return false;
-    }
-
-    // Basic heuristics for common word patterns
-    // Accept contractions
-    if (word.includes("'")) {
-      return true;
-    }
-
-    // Accept capitalized words (proper nouns)
-    if (word[0] === word[0].toUpperCase() && word.length > 2) {
-      return true;
-    }
-
-    // Accept words with common suffixes
-    const commonSuffixes = [
-      'ing', 'ed', 'er', 'est', 'ly', 'tion', 'sion', 'ness', 'ment', 'ful', 'less',
-      'able', 'ible', 'ous', 'ious', 'al', 'ic', 'ary', 'ory', 'ive', 'ative'
-    ];
+    if (cleanWord.length < 2) return false;
+    if (ignoredWords.has(cleanWord)) return false;
+    if (commonWords.has(cleanWord)) return false;
+    if (word.includes("'")) return false; // Skip contractions
+    if (/^[A-Z]/.test(word) && word.length > 2) return false; // Skip proper nouns
     
-    for (const suffix of commonSuffixes) {
-      if (cleanWord.endsWith(suffix)) {
-        const root = cleanWord.slice(0, -suffix.length);
-        if (root.length > 2 && commonWords.has(root)) {
-          return true;
-        }
-      }
-    }
-
-    // If none of the above, assume it's misspelled
-    return false;
+    return typoCorrections.hasOwnProperty(cleanWord);
   }, [ignoredWords]);
 
-  // Get suggestions for a misspelled word
+  // Get suggestions for a word
   const getSuggestions = useCallback((word: string): string[] => {
     const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
-    
-    // Check for known corrections first
-    if (commonCorrections[cleanWord]) {
-      return commonCorrections[cleanWord];
-    }
-
-    const suggestions: string[] = [];
-
-    // Simple edit distance suggestions
-    // Try removing each character
-    for (let i = 0; i < cleanWord.length; i++) {
-      const candidate = cleanWord.slice(0, i) + cleanWord.slice(i + 1);
-      if (candidate.length > 1 && commonWords.has(candidate)) {
-        suggestions.push(candidate);
-      }
-    }
-
-    // Try adding common endings
-    const endings = ['s', 'ed', 'ing', 'er', 'ly'];
-    for (const ending of endings) {
-      const candidate = cleanWord + ending;
-      if (commonWords.has(candidate)) {
-        suggestions.push(candidate);
-      }
-    }
-
-    // Try removing common endings
-    for (const ending of endings) {
-      if (cleanWord.endsWith(ending)) {
-        const candidate = cleanWord.slice(0, -ending.length);
-        if (candidate.length > 1 && commonWords.has(candidate)) {
-          suggestions.push(candidate);
-        }
-      }
-    }
-
-    return [...new Set(suggestions)].slice(0, 5);
+    return typoCorrections[cleanWord] || [];
   }, []);
 
-  // Get all misspelled words in the text
+  // Find misspelled words in text
   const getMisspelledWords = useCallback((): MisspelledWord[] => {
     if (!value) return [];
 
@@ -247,7 +135,7 @@ export default function SpellCheckTextarea({
     let currentIndex = 0;
 
     for (const word of words) {
-      if (word.match(/[a-zA-Z]/) && !isWordCorrect(word)) {
+      if (word.match(/[a-zA-Z]/) && isWordMisspelled(word)) {
         misspelled.push({
           word: word,
           startIndex: currentIndex,
@@ -258,9 +146,9 @@ export default function SpellCheckTextarea({
     }
 
     return misspelled;
-  }, [value, isWordCorrect]);
+  }, [value, isWordMisspelled]);
 
-  // Handle right click on misspelled words
+  // Handle right-click context menu
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     
@@ -270,7 +158,6 @@ export default function SpellCheckTextarea({
     const cursorPosition = textarea.selectionStart;
     const misspelledWords = getMisspelledWords();
     
-    // Find if click is on a misspelled word
     const clickedWord = misspelledWords.find(
       word => cursorPosition >= word.startIndex && cursorPosition <= word.endIndex
     );
@@ -304,7 +191,7 @@ export default function SpellCheckTextarea({
   // Handle ignore word
   const handleIgnoreWord = () => {
     const cleanWord = contextMenu.word.toLowerCase().replace(/[^a-z]/g, '');
-    setIgnoredWords(prev => new Set(prev).add(cleanWord));
+    setIgnoredWords(prev => new Set([...prev, cleanWord]));
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
@@ -328,21 +215,19 @@ export default function SpellCheckTextarea({
     let highlightedText = value;
     let offset = 0;
 
-    misspelledWords.forEach(word => {
+    // Process words in reverse order to maintain correct indices
+    for (let i = misspelledWords.length - 1; i >= 0; i--) {
+      const word = misspelledWords[i];
       const startTag = '<span class="misspelled-word">';
       const endTag = '</span>';
-      const start = word.startIndex + offset;
-      const end = word.endIndex + offset;
       
       highlightedText = 
-        highlightedText.substring(0, start) +
+        highlightedText.substring(0, word.startIndex) +
         startTag +
-        highlightedText.substring(start, end) +
+        highlightedText.substring(word.startIndex, word.endIndex) +
         endTag +
-        highlightedText.substring(end);
-      
-      offset += startTag.length + endTag.length;
-    });
+        highlightedText.substring(word.endIndex);
+    }
 
     return highlightedText.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
   };
