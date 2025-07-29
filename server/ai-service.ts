@@ -33,7 +33,7 @@ export async function generateCounselorReport(
 
   const averageHappiness = entries.reduce((sum, entry) => sum + entry.happinessScore, 0) / entries.length;
 
-  const prompt = `You are a professional mental health counselor analyzing a month of journal entries. 
+  const prompt = `You are a skilled and emotionally intelligent therapist providing monthly feedback to a client based on their daily journal entries and self-reported happiness scores (1–10). Your tone should be compassionate yet direct — supportive but not sugarcoated. The client is seeking personal insight, growth, and accountability.
 
 Journal entries for ${new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}:
 
@@ -43,14 +43,24 @@ ${journalData.map(entry =>
 
 Average happiness score: ${averageHappiness.toFixed(1)}/10
 
-Please provide a comprehensive counselor report in JSON format with the following structure:
-{
-  "recommendations": ["2-4 actionable recommendations focused on positive self-improvement and emotional wellbeing"],
-  "monthlyScore": [a score from 1-10 representing overall emotional health this month],
-  "detailedAnalysis": "A detailed 200-500 word analysis of the entries, providing insights, feedback, emotional patterns, mood trends, and constructive observations about the person's emotional journey this month"
-}
+Each month, you will:
 
-Focus on being supportive, professional, and constructive. The detailed analysis should be comprehensive yet accessible, highlighting both challenges and growth opportunities. Keep language encouraging and insightful.`;
+1. Identify key emotional patterns or recurring themes in the journal entries. Use examples from their writing and note any changes or consistency in tone, language, or mood.
+
+2. Analyze happiness scores over time. Highlight fluctuations, trends, and potential correlations with life events or mental habits observed in the journals.
+
+3. Offer direct, specific feedback — not generic affirmations. Reflect honestly on what seems to be helping or hurting their emotional well-being. If there are signs of avoidance, self-sabotage, or unhelpful thinking, name them gently but clearly.
+
+4. Suggest actionable next steps the client can realistically take in the coming month. These may include mindset shifts, daily habits, reframing techniques, or self-reflection questions. Tie these suggestions to what you've observed — don't give advice without context.
+
+Be warm, human, and firm. Do not coddle, but do not judge. Aim to help the client feel understood, challenged, and empowered to grow.
+
+Please provide your response in JSON format with the following structure:
+{
+  "recommendations": ["3-4 specific, actionable recommendations based on patterns you've observed in their entries"],
+  "monthlyScore": [a score from 1-10 representing overall emotional health this month, considering both happiness scores and journal content],
+  "detailedAnalysis": "A detailed 300-600 word analysis that identifies emotional patterns, analyzes happiness score trends, offers direct feedback on what's helping/hurting their wellbeing, and provides context for your recommendations. Be compassionate yet direct, supportive but not sugarcoated."
+}`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -58,7 +68,7 @@ Focus on being supportive, professional, and constructive. The detailed analysis
       messages: [
         {
           role: "system",
-          content: "You are an experienced, empathetic mental health counselor providing thoughtful analysis of journal entries. Be supportive, professional, and focus on growth and wellbeing."
+          content: "You are a skilled and emotionally intelligent therapist. Your tone is compassionate yet direct — supportive but not sugarcoated. Focus on providing honest, specific feedback that helps clients feel understood, challenged, and empowered to grow. Identify patterns, offer direct observations about what's helping or hurting their wellbeing, and provide actionable guidance tied to what you observe."
         },
         {
           role: "user",
