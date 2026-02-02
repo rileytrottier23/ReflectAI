@@ -100,14 +100,34 @@ The application follows a monorepo structure with clear separation between clien
 ### Required Environment Variables
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Secure random string for session encryption
-- `OPENAI_API_KEY`: OpenAI API key for AI report generation
+- `AI_INTEGRATIONS_OPENAI_API_KEY`: Replit AI Integrations API key (auto-managed)
+- `AI_INTEGRATIONS_OPENAI_BASE_URL`: Replit AI Integrations base URL (auto-managed)
 - `NODE_ENV`: Environment setting (development/production)
+
+## Security Features
+
+### Authentication Security
+- **PostgreSQL Session Storage**: Sessions stored in database (not memory) for persistence across restarts
+- **Rate Limiting**: Auth endpoints limited to 10 login attempts per 15 minutes, 5 registrations per hour
+- **Account Lockout**: Accounts locked for 15 minutes after 5 failed login attempts
+- **Password Complexity**: Requires 8+ characters with uppercase, lowercase, and numbers
+
+### Application Security
+- **Security Headers**: Helmet.js for CSP, HSTS, and other security headers
+- **Request Size Limits**: 1MB limit on request bodies to prevent abuse
+- **Content Sanitization**: Journal content sanitized before AI processing to prevent prompt injection
+- **Secure Cookies**: HttpOnly, SameSite, and Secure (in production) cookie settings
+
+### AI Security
+- **Replit AI Integrations**: Uses managed API keys (no user-managed secrets)
+- **Input Sanitization**: Filters potential prompt injection patterns from journal content
 
 ## Changelog
 ```
 Changelog:
 - June 30, 2025. Initial setup
 - July 29, 2025. Updated AI counselor prompt to use therapeutic approach: compassionate yet direct tone, pattern identification, specific feedback on emotional wellbeing, and actionable recommendations tied to observed behaviors. Added spell check functionality with red wavy underlines and right-click corrections.
+- February 2, 2026. Security hardening: Switched to PostgreSQL session storage, added rate limiting, account lockout, password complexity requirements, security headers (Helmet), request size limits, AI prompt injection protection. Migrated to Replit AI Integrations for OpenAI.
 ```
 
 ## User Preferences
