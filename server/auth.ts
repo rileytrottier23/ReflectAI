@@ -130,6 +130,9 @@ export function setupAuth(app: Express) {
     console.error('Session store pool error:', err);
   });
   
+  // Log successful session store initialization
+  console.log('Session store initializing with PostgreSQL...');
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || randomBytes(32).toString('hex'),
     resave: false,
