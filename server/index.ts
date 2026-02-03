@@ -5,23 +5,11 @@ import helmet from "helmet";
 
 const app = express();
 
-// Security headers using helmet
+// Security headers using helmet - configured for Replit deployment
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "blob:"],
-      fontSrc: ["'self'"],
-      connectSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
-    },
-  },
+  contentSecurityPolicy: false, // Disable CSP for now to ensure compatibility
   crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "same-origin" },
+  crossOriginResourcePolicy: false,
 }));
 
 // Request body size limits for security
