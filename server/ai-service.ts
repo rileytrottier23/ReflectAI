@@ -12,31 +12,6 @@ export interface CounselorReport {
   detailedAnalysis: string;
 }
 
-// Sanitize journal content to prevent prompt injection attacks
-function sanitizeContent(content: string): string {
-  // Remove or escape potential prompt injection patterns
-  let sanitized = content
-    // Remove system-like commands
-    .replace(/\b(system|assistant|user):\s*/gi, '')
-    // Remove attempts to override instructions
-    .replace(/ignore\s+(previous|above|all)\s+instructions?/gi, '[content removed]')
-    .replace(/disregard\s+(previous|above|all)\s+instructions?/gi, '[content removed]')
-    .replace(/forget\s+(previous|above|all)\s+instructions?/gi, '[content removed]')
-    // Remove markdown code block attempts that might contain instructions
-    .replace(/```[\s\S]*?```/g, (match) => {
-      if (match.toLowerCase().includes('system') || match.toLowerCase().includes('instruction')) {
-        return '[code block removed]';
-      }
-      return match;
-    })
-    // Limit excessive special characters that might be used for injection
-    .replace(/[<>{}]/g, '')
-    // Truncate very long entries to prevent abuse
-    .substring(0, 10000);
-  
-  return sanitized;
-}
-
 export async function generateCounselorReport(
   entries: JournalEntry[], 
   month: number, 
@@ -50,11 +25,11 @@ export async function generateCounselorReport(
     };
   }
 
-  // Prepare and sanitize journal data for analysis
+  // Prepare journal data for analysis
   const journalData = entries.map(entry => ({
     date: entry.date,
-    content: sanitizeContent(entry.content),
-    happinessScore: Math.max(1, Math.min(10, entry.happinessScore)) // Ensure score is valid
+    content: entry.content,
+    happinessScore: entry.happinessScore
   }));
 
   const averageHappiness = entries.reduce((sum, entry) => sum + entry.happinessScore, 0) / entries.length;
@@ -90,7 +65,7 @@ Please provide your response in JSON format with the following structure:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
