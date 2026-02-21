@@ -107,20 +107,24 @@ The application follows a monorepo structure with clear separation between clien
 ## Security Features
 
 ### Authentication Security
-- **PostgreSQL Session Storage**: Sessions stored in database (not memory) for persistence across restarts
-- **Rate Limiting**: Auth endpoints limited to 10 login attempts per 15 minutes, 5 registrations per hour
-- **Account Lockout**: Accounts locked for 15 minutes after 5 failed login attempts
-- **Password Complexity**: Requires 8+ characters with uppercase, lowercase, and numbers
+- **Rate Limiting**: Login limited to 20 attempts per 15 minutes, registration limited to 5 per hour per IP
+- **Account Lockout**: Accounts locked for 1 hour after 10 failed login attempts (in-memory tracking)
+- **Password Complexity**: Requires 8+ characters with uppercase, lowercase, numbers, and special characters
+- **User Enumeration Prevention**: Registration returns generic messages that don't reveal existing accounts
+- **Custom Session Cookie Name**: Uses `__reflectai_sid` instead of default `connect.sid`
+- **Password Stripping**: Password hash removed from user objects during session deserialization
 
 ### Application Security
-- **Security Headers**: Helmet.js for CSP, HSTS, and other security headers
-- **Request Size Limits**: 1MB limit on request bodies to prevent abuse
-- **Content Sanitization**: Journal content sanitized before AI processing to prevent prompt injection
-- **Secure Cookies**: HttpOnly, SameSite, and Secure (in production) cookie settings
+- **Security Headers**: Helmet.js providing X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, CORP, COOP, Referrer-Policy, X-DNS-Prefetch-Control
+- **Secure Cookies**: HttpOnly, SameSite=lax, and Secure (in production) cookie settings
+- **POST-only Logout**: Logout only accepts POST requests to prevent CSRF logout attacks
+- **Sanitized Error Logging**: Error details not logged to console to prevent sensitive data exposure
 
 ### AI Security
 - **Replit AI Integrations**: Uses managed API keys (no user-managed secrets)
-- **Input Sanitization**: Filters potential prompt injection patterns from journal content
+- **Prompt Injection Protection**: Journal entries wrapped in delimiter tags with instructions to AI to ignore embedded commands
+- **Content Truncation**: Journal entries truncated to 5,000 characters before AI processing
+- **AI Report Rate Limiting**: Limited to 5 report generations per hour per IP
 
 ## Changelog
 ```
@@ -128,6 +132,7 @@ Changelog:
 - June 30, 2025. Initial setup
 - July 29, 2025. Updated AI counselor prompt to use therapeutic approach: compassionate yet direct tone, pattern identification, specific feedback on emotional wellbeing, and actionable recommendations tied to observed behaviors. Added spell check functionality with red wavy underlines and right-click corrections.
 - February 2, 2026. Security hardening: Switched to PostgreSQL session storage, added rate limiting, account lockout, password complexity requirements, security headers (Helmet), request size limits, AI prompt injection protection. Migrated to Replit AI Integrations for OpenAI.
+- February 21, 2026. Comprehensive security review and fixes: Added rate limiting (express-rate-limit) to login/register/AI endpoints, fixed user enumeration on registration, removed GET logout handler, added Helmet security headers, enforced SESSION_SECRET, stripped password from deserialized user objects, sanitized error logging (removed console.error of sensitive data), added account lockout after 10 failures, changed cookie name to __reflectai_sid, added prompt injection protection with delimiter tags and content truncation for AI service.
 ```
 
 ## User Preferences
