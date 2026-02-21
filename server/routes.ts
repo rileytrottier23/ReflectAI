@@ -5,8 +5,8 @@ import { setupAuth } from "./auth";
 import { generateCounselorReport } from "./ai-service";
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
+import rateLimit from "express-rate-limit";
 
-// Middleware to check if user is authenticated
 function isAuthenticated(req: any, res: any, next: any) {
   if (req.isAuthenticated()) {
     return next();
@@ -16,20 +16,14 @@ function isAuthenticated(req: any, res: any, next: any) {
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
-
-  // Auth middleware
   setupAuth(app);
 
-  // User routes are handled by setupAuth in auth.ts
-
-  // Journal entry routes
   app.get("/api/journal/entries", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
       const entries = await storage.getUserJournalEntries(userId);
       res.json(entries);
     } catch (error) {
-      console.error("Error fetching journal entries:", error);
       res.status(500).json({ message: "Failed to fetch journal entries" });
     }
   });
@@ -39,7 +33,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id.toString();
       const { date } = req.params;
       
-      // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
         return res.status(400).json({ message: "Please select a valid date" });
       }
@@ -52,7 +45,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(entry);
     } catch (error) {
-      console.error("Error fetching journal entry:", error);
       res.status(500).json({ message: "We couldn't load your journal entry. Please try again" });
     }
   });
@@ -62,7 +54,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id.toString();
       const validatedData = insertJournalEntrySchema.parse(req.body);
       
-      // Check if entry already exists for this date
       const existingEntry = await storage.getJournalEntry(userId, validatedData.date);
       if (existingEntry) {
         return res.status(400).json({ message: "You already have a journal entry for this date" });
@@ -74,7 +65,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
       }
-      console.error("Error creating journal entry:", error);
       res.status(500).json({ message: "We couldn't save your journal entry. Please try again" });
     }
   });
@@ -84,7 +74,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id.toString();
       const { date } = req.params;
       
-      // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
         return res.status(400).json({ message: "Please select a valid date" });
       }
@@ -97,7 +86,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
       }
-      console.error("Error updating journal entry:", error);
       res.status(500).json({ message: "We couldn't update your journal entry. Please try again" });
     }
   });
@@ -107,7 +95,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id.toString();
       const { date } = req.params;
       
-      // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
         return res.status(400).json({ message: "Please select a valid date" });
       }
@@ -115,7 +102,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteJournalEntry(userId, date);
       res.json({ message: "Your journal entry has been deleted" });
     } catch (error) {
-      console.error("Error deleting journal entry:", error);
       res.status(500).json({ message: "We couldn't delete your journal entry. Please try again" });
     }
   });
@@ -135,13 +121,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entries = await storage.getUserJournalEntriesByMonth(userId, yearNum, monthNum);
       res.json(entries);
     } catch (error) {
-      console.error("Error fetching monthly journal entries:", error);
       res.status(500).json({ message: "We couldn't load your journal entries. Please try again" });
     }
   });
 
-  // Generate AI counselor report
-  app.post("/api/counselor/report", isAuthenticated, async (req: any, res) => {
+  const aiReportLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { message: "You've generated too many reports recently. Please try again in an hour" },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.post("/api/counselor/report", isAuthenticated, aiReportLimiter, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
       const { month, year } = req.body;
@@ -150,15 +142,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Please select a valid month and year" });
       }
       
-      // Get journal entries for the specified month
       const entries = await storage.getUserJournalEntriesByMonth(userId, year, month);
       
-      // Generate AI report
       const report = await generateCounselorReport(entries, month, year);
       
       res.json(report);
     } catch (error) {
-      console.error("Error generating counselor report:", error);
       res.status(500).json({ message: "We couldn't generate your report right now. Please try again" });
     }
   });
