@@ -24,6 +24,7 @@ export interface IStorage {
   updateJournalEntry(userId: string, date: string, entry: UpdateJournalEntry): Promise<JournalEntry>;
   deleteJournalEntry(userId: string, date: string): Promise<void>;
   getUserJournalEntriesByMonth(userId: string, year: number, month: number): Promise<JournalEntry[]>;
+  getUserJournalEntriesByYear(userId: string, year: number): Promise<JournalEntry[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -93,6 +94,23 @@ export class DatabaseStorage implements IStorage {
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
     
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, parseInt(userId)),
+          sql`date >= ${startDate}`,
+          sql`date <= ${endDate}`
+        )
+      )
+      .orderBy(desc(journalEntries.date));
+  }
+
+  async getUserJournalEntriesByYear(userId: string, year: number): Promise<JournalEntry[]> {
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+
     return await db
       .select()
       .from(journalEntries)
