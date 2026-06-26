@@ -84,6 +84,30 @@ export const insertUserSchema = createInsertSchema(users, {
   updatedAt: true,
 });
 
+// Saved counselor reports table
+export const savedReports = pgTable("saved_reports", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // 'monthly' | 'annual'
+  month: integer("month"), // null for annual reports
+  year: integer("year").notNull(),
+  recommendations: jsonb("recommendations").$type<string[]>().notNull(),
+  score: integer("score").notNull(),
+  detailedAnalysis: text("detailed_analysis").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userTypeMonthYear: unique().on(table.userId, table.type, table.month, table.year),
+}));
+
+export const savedReportsRelations = relations(savedReports, ({ one }) => ({
+  user: one(users, {
+    fields: [savedReports.userId],
+    references: [users.id],
+  }),
+}));
+
+export type SavedReport = typeof savedReports.$inferSelect;
+
 // Conversations table for AI chat (required by OpenAI integration)
 export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),

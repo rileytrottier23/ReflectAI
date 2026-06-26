@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import NavigationHeader from "@/components/navigation-header";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Calendar, TrendingUp, Brain, Lightbulb, Target, Loader2 } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, Brain, Lightbulb, Target, Loader2, ChevronDown, ChevronUp, Clock } from "lucide-react";
+
+interface SavedReport {
+  id: number;
+  type: string;
+  month: number | null;
+  year: number;
+  recommendations: string[];
+  score: number;
+  detailedAnalysis: string;
+  createdAt: string;
+}
 
 interface CounselorReport {
   recommendations: string[];
@@ -44,15 +55,71 @@ function calculateLongestStreakForMonth(entries: any[]): number {
   return Math.max(longestStreak, currentStreak);
 }
 
+function SavedReportCard({ saved }: { saved: SavedReport }) {
+  const [expanded, setExpanded] = useState(false);
+  const label = new Date(saved.year, (saved.month ?? 1) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const generatedOn = new Date(saved.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  return (
+    <Card className="border-beige-300 bg-white shadow-sm">
+      <CardContent className="p-4">
+        <button
+          className="w-full flex items-center justify-between text-left gap-3"
+          onClick={() => setExpanded((e) => !e)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-semibold text-sage-700">{saved.score}</span>
+            </div>
+            <div>
+              <p className="font-medium text-black text-sm">{label}</p>
+              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                <Clock className="w-3 h-3" /> Generated {generatedOn}
+              </p>
+            </div>
+          </div>
+          {expanded ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+        </button>
+
+        {expanded && (
+          <div className="mt-4 space-y-4 border-t border-beige-200 pt-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Analysis</p>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{saved.detailedAnalysis}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommendations</p>
+              <div className="space-y-2">
+                {saved.recommendations.map((rec, i) => (
+                  <div key={i} className="flex items-start gap-2 p-2 bg-beige-50 rounded-lg">
+                    <div className="w-5 h-5 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5">{i + 1}</div>
+                    <p className="text-sm text-gray-800">{rec}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function CounselorReports() {
   const { toast } = useToast();
   const { user, isLoading } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [report, setReport] = useState<CounselorReport | null>(null);
 
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["/api/journal/entries"],
+    enabled: !!user,
+  });
+
+  const { data: savedReports = [] } = useQuery<SavedReport[]>({
+    queryKey: ["/api/counselor/reports/monthly"],
     enabled: !!user,
   });
 
@@ -83,6 +150,7 @@ export default function CounselorReports() {
     },
     onSuccess: (data: CounselorReport) => {
       setReport(data);
+      queryClient.invalidateQueries({ queryKey: ["/api/counselor/reports/monthly"] });
       toast({
         title: "Report ready",
         description: "Your counselor report has been generated",
@@ -367,6 +435,24 @@ export default function CounselorReports() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Previously Generated Reports */}
+        {savedReports.length > 0 && (
+          <div className="mt-12">
+            <div className="mb-4">
+              <h3 className="text-xl font-display font-semibold text-black flex items-center gap-2">
+                <Clock className="h-5 w-5 text-sage-600" />
+                Previously Generated Reports
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Click any report to expand and read the full analysis.</p>
+            </div>
+            <div className="space-y-3">
+              {savedReports.map((saved) => (
+                <SavedReportCard key={saved.id} saved={saved} />
+              ))}
+            </div>
+          </div>
+        )}
       </main>
       
       <Footer />
