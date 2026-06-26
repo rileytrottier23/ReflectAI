@@ -112,6 +112,7 @@ export default function CounselorReports() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [report, setReport] = useState<CounselorReport | null>(null);
+  const [activeTab, setActiveTab] = useState<"generate" | "history">("generate");
 
   const { data: entries, isLoading: entriesLoading } = useQuery({
     queryKey: ["/api/journal/entries"],
@@ -247,210 +248,225 @@ export default function CounselorReports() {
       <NavigationHeader currentTab="reports" />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-3xl font-display font-semibold text-black mb-2">
-            AI Counselor Reports
+            Monthly Counselor Reports
           </h2>
           <p className="text-gray-800">
             Get AI-powered insights and monthly summaries based on your journal entries and mood patterns.
           </p>
         </div>
 
-        {/* Report Generation Controls */}
-        <Card className="border-beige-300 bg-white shadow-sm mb-8">
-          <CardHeader>
-            <CardTitle className="font-display text-black flex items-center gap-2">
-              <Brain className="h-5 w-5 text-sage-600" />
-              Generate AI Report
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Month:</label>
-                <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                      <SelectItem key={month} value={month.toString()}>
-                        {new Date(2024, month - 1).toLocaleDateString('en-US', { month: 'long' })}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Year:</label>
-                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {/* Entry Count and Validation Status */}
-            <div className="mb-4 p-3 bg-beige-50 rounded-lg">
-              <div className="text-sm text-gray-700">
-                {(() => {
-                  const selectedMonthEntries = allEntries.filter((entry: any) => {
-                    const entryDate = new Date(entry.date);
-                    return entryDate.getMonth() + 1 === selectedMonth && entryDate.getFullYear() === selectedYear;
-                  });
-                  
-                  const now = new Date();
-                  const selectedDate = new Date(selectedYear, selectedMonth - 1);
-                  const isCurrentMonth = selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth();
-                  const isEndOfMonth = now.getDate() >= 28;
-                  
-                  return (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span>Entries for {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                      </div>
-                      <div className="text-xs">
-                        {selectedMonthEntries.length < 7 && (
-                          <span className="text-amber-600">Need {7 - selectedMonthEntries.length} more entries to generate report</span>
-                        )}
-                        {selectedMonthEntries.length >= 7 && isCurrentMonth && !isEndOfMonth && (
-                          <span className="text-amber-600">Reports available at month end (after 28th)</span>
-                        )}
-                        {selectedMonthEntries.length >= 7 && (!isCurrentMonth || isEndOfMonth) && (
-                          <span className="text-sage-600">Report can be generated</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-            
-            <Button 
-              onClick={handleGenerateReport}
-              disabled={generateReportMutation.isPending}
-              className="bg-sage-600 hover:bg-sage-700 text-white"
-            >
-              {generateReportMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating Report...
-                </>
-              ) : (
-                <>
-                  <Brain className="h-4 w-4 mr-2" />
-                  Generate AI Report
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 bg-white border border-beige-300 rounded-lg p-1 w-fit shadow-sm">
+          <button
+            onClick={() => setActiveTab("generate")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+              activeTab === "generate"
+                ? "bg-sage-600 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900 hover:bg-beige-50"
+            }`}
+          >
+            <Brain className="w-4 h-4" />
+            Generate Report
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+              activeTab === "history"
+                ? "bg-sage-600 text-white shadow-sm"
+                : "text-gray-600 hover:text-gray-900 hover:bg-beige-50"
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Report History
+            {savedReports.length > 0 && (
+              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === "history" ? "bg-white/20 text-white" : "bg-sage-100 text-sage-700"}`}>
+                {savedReports.length}
+              </span>
+            )}
+          </button>
+        </div>
 
-        {/* AI Generated Report */}
-        {report && (
-          <div className="space-y-8">
-            {/* Detailed Analysis */}
-            <Card className="border-beige-300 bg-white shadow-sm">
+        {/* Generate Tab */}
+        {activeTab === "generate" && (
+          <>
+            <Card className="border-beige-300 bg-white shadow-sm mb-8">
               <CardHeader>
                 <CardTitle className="font-display text-black flex items-center gap-2">
                   <Brain className="h-5 w-5 text-sage-600" />
-                  AI Analysis Report
+                  Generate Monthly Report
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{report.detailedAnalysis}</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Month:</label>
+                    <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                          <SelectItem key={month} value={month.toString()}>
+                            {new Date(2024, month - 1).toLocaleDateString('en-US', { month: 'long' })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Year:</label>
+                    <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                      <SelectTrigger className="w-24">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="mb-4 p-3 bg-beige-50 rounded-lg text-sm text-gray-700 space-y-1">
+                  <span>Entries for {new Date(selectedYear, selectedMonth - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}: <span className="font-medium">{selectedMonthEntries.length}</span></span>
+                  <div className="text-xs">
+                    {selectedMonthEntries.length < 7 && (
+                      <p className="text-amber-600">Need {7 - selectedMonthEntries.length} more entries to generate report</p>
+                    )}
+                    {selectedMonthEntries.length >= 7 && (() => {
+                      const now = new Date();
+                      const selectedDate = new Date(selectedYear, selectedMonth - 1);
+                      const isCurrentMonth = selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth();
+                      const isEndOfMonth = now.getDate() >= 28;
+                      if (isCurrentMonth && !isEndOfMonth) return <p className="text-amber-600">Reports available at month end (after 28th)</p>;
+                      return <p className="text-sage-600">Report can be generated</p>;
+                    })()}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleGenerateReport}
+                  disabled={generateReportMutation.isPending}
+                  className="bg-sage-600 hover:bg-sage-700 text-white"
+                >
+                  {generateReportMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating Report...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4 mr-2" />
+                      Generate Monthly Report
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Recommendations */}
-            <Card className="border-beige-300 bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="font-display text-black flex items-center gap-2">
-                  <Target className="h-5 w-5 text-sage-600" />
-                  Recommendations
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {report.recommendations.map((recommendation, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-beige-50 rounded-lg">
-                      <div className="w-6 h-6 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                        {index + 1}
-                      </div>
-                      <p className="text-sm text-gray-800">{recommendation}</p>
+            {/* Newly generated report */}
+            {report && (
+              <div className="space-y-8">
+                <Card className="border-beige-300 bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="font-display text-black flex items-center gap-2">
+                      <Brain className="h-5 w-5 text-sage-600" />
+                      AI Analysis Report
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{report.detailedAnalysis}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-beige-300 bg-white shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="font-display text-black flex items-center gap-2">
+                      <Target className="h-5 w-5 text-sage-600" />
+                      Recommendations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {report.recommendations.map((recommendation, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-beige-50 rounded-lg">
+                          <div className="w-6 h-6 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                            {index + 1}
+                          </div>
+                          <p className="text-sm text-gray-800">{recommendation}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+              <Card className="border-beige-300 bg-white shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Selected Month Entries</p>
+                      <p className="text-2xl font-semibold text-black">{selectedMonthEntries.length}</p>
+                    </div>
+                    <Calendar className="h-8 w-8 text-sage-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-beige-300 bg-white shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Average Happiness This Month</p>
+                      <p className="text-2xl font-semibold text-black">{averageHappiness}/10</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-sage-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-beige-300 bg-white shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Longest Streak</p>
+                      <p className="text-2xl font-semibold text-black">{longestStreak} days</p>
+                    </div>
+                    <BarChart3 className="h-8 w-8 text-sage-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <Card className="border-beige-300 bg-white shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Selected Month Entries</p>
-                  <p className="text-2xl font-semibold text-black">{selectedMonthEntries.length}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-sage-600" />
+        {/* History Tab */}
+        {activeTab === "history" && (
+          <div>
+            {savedReports.length === 0 ? (
+              <div className="text-center py-16 text-gray-500">
+                <Clock className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                <p className="font-medium">No reports yet</p>
+                <p className="text-sm mt-1">Generate your first monthly report to see it here.</p>
+                <Button variant="outline" className="mt-4" onClick={() => setActiveTab("generate")}>
+                  Generate a Report
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-beige-300 bg-white shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Average Happiness This Month</p>
-                  <p className="text-2xl font-semibold text-black">{averageHappiness}/10</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-sage-600" />
+            ) : (
+              <div className="space-y-3">
+                {savedReports.map((saved) => (
+                  <SavedReportCard key={saved.id} saved={saved} />
+                ))}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-beige-300 bg-white shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Longest Streak</p>
-                  <p className="text-2xl font-semibold text-black">{longestStreak} days</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-sage-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Previously Generated Reports */}
-        {savedReports.length > 0 && (
-          <div className="mt-12">
-            <div className="mb-4">
-              <h3 className="text-xl font-display font-semibold text-black flex items-center gap-2">
-                <Clock className="h-5 w-5 text-sage-600" />
-                Previously Generated Reports
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Click any report to expand and read the full analysis.</p>
-            </div>
-            <div className="space-y-3">
-              {savedReports.map((saved) => (
-                <SavedReportCard key={saved.id} saved={saved} />
-              ))}
-            </div>
+            )}
           </div>
         )}
       </main>
