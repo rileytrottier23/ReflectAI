@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { generateCounselorReport } from "./ai-service";
+import { generateCounselorReport, generateAnnualCounselorReport } from "./ai-service";
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -149,6 +149,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(report);
     } catch (error) {
       res.status(500).json({ message: "We couldn't generate your report right now. Please try again" });
+    }
+  });
+
+  app.post("/api/counselor/annual-report", isAuthenticated, aiReportLimiter, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const { year } = req.body;
+
+      if (!year || year < 1900 || year > 2100) {
+        return res.status(400).json({ message: "Please select a valid year" });
+      }
+
+      const entries = await storage.getUserJournalEntriesByYear(userId, year);
+
+      const report = await generateAnnualCounselorReport(entries, year);
+
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: "We couldn't generate your annual report right now. Please try again" });
     }
   });
 

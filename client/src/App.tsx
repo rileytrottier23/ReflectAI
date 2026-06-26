@@ -7,6 +7,7 @@ import { useAuth, AuthProvider } from "@/hooks/use-auth";
 import Landing from "@/pages/landing";
 import Journal from "@/pages/journal";
 import CounselorReports from "@/pages/counselor-reports";
+import AnnualReport from "@/pages/annual-report";
 import Auth from "@/pages/auth";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Contact from "@/pages/contact";
@@ -25,6 +26,7 @@ function Router() {
           <Route path="/" component={Journal} />
           <Route path="/journal" component={Journal} />
           <Route path="/counselor-reports" component={CounselorReports} />
+          <Route path="/annual-report" component={AnnualReport} />
         </>
       ) : (
         <Route path="/" component={Landing} />
