@@ -133,6 +133,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     legacyHeaders: false,
   });
 
+  app.get("/api/counselor/reports/monthly", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const reports = await storage.getSavedReports(userId, 'monthly');
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ message: "We couldn't load your saved reports. Please try again" });
+    }
+  });
+
+  app.get("/api/counselor/reports/annual", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const reports = await storage.getSavedReports(userId, 'annual');
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ message: "We couldn't load your saved reports. Please try again" });
+    }
+  });
+
   app.post("/api/counselor/report", isAuthenticated, aiReportLimiter, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
@@ -143,9 +163,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const entries = await storage.getUserJournalEntriesByMonth(userId, year, month);
-      
       const report = await generateCounselorReport(entries, month, year);
-      
+
+      await storage.saveReport(userId, 'monthly', month, year, report.recommendations, report.monthlyScore, report.detailedAnalysis);
+
       res.json(report);
     } catch (error) {
       res.status(500).json({ message: "We couldn't generate your report right now. Please try again" });
@@ -162,8 +183,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const entries = await storage.getUserJournalEntriesByYear(userId, year);
-
       const report = await generateAnnualCounselorReport(entries, year);
+
+      await storage.saveReport(userId, 'annual', null, year, report.recommendations, report.annualScore, report.detailedAnalysis);
 
       res.json(report);
     } catch (error) {

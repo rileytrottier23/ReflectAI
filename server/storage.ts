@@ -1,11 +1,13 @@
 import {
   users,
   journalEntries,
+  savedReports,
   type User,
   type InsertUser,
   type JournalEntry,
   type InsertJournalEntry,
   type UpdateJournalEntry,
+  type SavedReport,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -25,6 +27,9 @@ export interface IStorage {
   deleteJournalEntry(userId: string, date: string): Promise<void>;
   getUserJournalEntriesByMonth(userId: string, year: number, month: number): Promise<JournalEntry[]>;
   getUserJournalEntriesByYear(userId: string, year: number): Promise<JournalEntry[]>;
+  // Saved report operations
+  saveReport(userId: string, type: 'monthly' | 'annual', month: number | null, year: number, recommendations: string[], score: number, detailedAnalysis: string): Promise<SavedReport>;
+  getSavedReports(userId: string, type: 'monthly' | 'annual'): Promise<SavedReport[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -122,6 +127,39 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(journalEntries.date));
+  }
+
+  async saveReport(userId: string, type: 'monthly' | 'annual', month: number | null, year: number, recommendations: string[], score: number, detailedAnalysis: string): Promise<SavedReport> {
+    const [report] = await db
+      .insert(savedReports)
+      .values({
+        userId: parseInt(userId),
+        type,
+        month,
+        year,
+        recommendations,
+        score,
+        detailedAnalysis,
+      })
+      .onConflictDoUpdate({
+        target: [savedReports.userId, savedReports.type, savedReports.month, savedReports.year],
+        set: {
+          recommendations,
+          score,
+          detailedAnalysis,
+          createdAt: new Date(),
+        },
+      })
+      .returning();
+    return report;
+  }
+
+  async getSavedReports(userId: string, type: 'monthly' | 'annual'): Promise<SavedReport[]> {
+    return await db
+      .select()
+      .from(savedReports)
+      .where(and(eq(savedReports.userId, parseInt(userId)), eq(savedReports.type, type)))
+      .orderBy(desc(savedReports.createdAt));
   }
 }
 
