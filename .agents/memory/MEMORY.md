@@ -1,0 +1,1 @@
+- [Neon HTTP Driver Zero-Row Bug](neon-http-zero-row-bug.md) — neon-http v0.10.4 crashes on 0-row SELECTs; use pg+node-postgres instead (already fixed in db.ts).
