@@ -10,7 +10,7 @@ import {
   type SavedReport,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, ilike, gte, lte } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -27,6 +27,8 @@ export interface IStorage {
   deleteJournalEntry(userId: string, date: string): Promise<void>;
   getUserJournalEntriesByMonth(userId: string, year: number, month: number): Promise<JournalEntry[]>;
   getUserJournalEntriesByYear(userId: string, year: number): Promise<JournalEntry[]>;
+  searchJournalEntries(userId: string, query: string, limit: number): Promise<JournalEntry[]>;
+  getJournalEntriesInRange(userId: string, startDate: string, endDate: string): Promise<JournalEntry[]>;
   // Saved report operations
   saveReport(userId: string, type: 'monthly' | 'annual', month: number | null, year: number, recommendations: string[], score: number, detailedAnalysis: string): Promise<SavedReport>;
   getSavedReports(userId: string, type: 'monthly' | 'annual'): Promise<SavedReport[]>;
@@ -124,6 +126,34 @@ export class DatabaseStorage implements IStorage {
           eq(journalEntries.userId, parseInt(userId)),
           sql`date >= ${startDate}`,
           sql`date <= ${endDate}`
+        )
+      )
+      .orderBy(desc(journalEntries.date));
+  }
+
+  async searchJournalEntries(userId: string, query: string, limit: number): Promise<JournalEntry[]> {
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, parseInt(userId)),
+          ilike(journalEntries.content, `%${query}%`)
+        )
+      )
+      .orderBy(desc(journalEntries.date))
+      .limit(limit);
+  }
+
+  async getJournalEntriesInRange(userId: string, startDate: string, endDate: string): Promise<JournalEntry[]> {
+    return await db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, parseInt(userId)),
+          gte(journalEntries.date, startDate),
+          lte(journalEntries.date, endDate)
         )
       )
       .orderBy(desc(journalEntries.date));
