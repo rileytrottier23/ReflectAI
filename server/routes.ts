@@ -6,6 +6,7 @@ import { generateCounselorReport, generateAnnualCounselorReport } from "./ai-ser
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
+import { handleMcpRequest } from "./mcp";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -185,6 +186,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(report);
     } catch (error) {
       res.status(500).json({ message: "We couldn't generate your annual report right now. Please try again" });
+    }
+  });
+
+  // ── MCP endpoint (/mcp) ────────────────────────────────────────────────────
+  // Auth: Bearer token in Authorization header (MCP_TOKEN secret)
+  // User identity: looks up the local user row by MCP_USER_EMAIL secret
+  const mcpAuthMiddleware = async (req: any, res: any, next: any) => {
+    const token = process.env.MCP_TOKEN;
+    if (!token) {
+      return res.status(503).json({ error: "MCP_TOKEN secret not configured" });
+    }
+    const auth = req.headers["authorization"];
+    if (!auth || auth !== `Bearer ${token}`) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    // Resolve the user this MCP server belongs to
+    const email = process.env.MCP_USER_EMAIL;
+    if (!email) {
+      return res.status(503).json({ error: "MCP_USER_EMAIL secret not configured" });
+    }
+    let user = await storage.getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ error: `No account found for MCP_USER_EMAIL (${email}). Sign in to the app first.` });
+    }
+    req.mcpUserId = user.id.toString();
+    next();
+  };
+
+  app.post("/mcp", mcpAuthMiddleware, async (req, res) => {
+    try {
+      await handleMcpRequest(req, res);
+    } catch (err) {
+      console.error("[mcp] unhandled error", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal MCP error" });
+      }
     }
   });
 
