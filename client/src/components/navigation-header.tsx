@@ -2,20 +2,20 @@ import { useState, useRef, useEffect } from "react";
 import { Sprout, BookOpen, BarChart3, LogOut, ChevronDown, Calendar, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useClerk } from "@clerk/react";
 
 interface NavigationHeaderProps {
   currentTab: "journal" | "reports";
 }
 
 export default function NavigationHeader({ currentTab }: NavigationHeaderProps) {
-  const { logoutMutation } = useAuth();
+  const { signOut } = useClerk();
   const [location] = useLocation();
   const [reportsOpen, setReportsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
-    logoutMutation.mutate();
+    signOut({ redirectUrl: "/" });
   };
 
   useEffect(() => {

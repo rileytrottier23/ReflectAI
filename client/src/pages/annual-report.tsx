@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@clerk/react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import NavigationHeader from "@/components/navigation-header";
@@ -77,7 +77,7 @@ function SavedReportCard({ saved }: { saved: SavedReport }) {
 
 export default function AnnualReport() {
   const { toast } = useToast();
-  const { user, isLoading } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const queryClient = useQueryClient();
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [report, setReport] = useState<AnnualCounselorReport | null>(null);
@@ -85,12 +85,12 @@ export default function AnnualReport() {
 
   const { data: entries } = useQuery({
     queryKey: ["/api/journal/entries"],
-    enabled: !!user,
+    enabled: !!isSignedIn,
   });
 
   const { data: savedReports = [] } = useQuery<SavedReport[]>({
     queryKey: ["/api/counselor/reports/annual"],
-    enabled: !!user,
+    enabled: !!isSignedIn,
   });
 
   const generateReportMutation = useMutation({
@@ -135,28 +135,14 @@ export default function AnnualReport() {
     },
   });
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      toast({
-        title: "Session expired",
-        description: "Please log in again to continue",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/auth";
-      }, 500);
-    }
-  }, [user, isLoading, toast]);
-
-  if (isLoading) {
+  // Auth redirect is handled by ProtectedRoute in App.tsx
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-beige-200 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-500"></div>
       </div>
     );
   }
-
-  if (!user) return null;
 
   const allEntries = Array.isArray(entries) ? entries : [];
 

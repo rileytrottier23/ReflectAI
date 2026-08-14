@@ -11,7 +11,7 @@ import SpellCheckTextarea from "@/components/spell-check-textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -132,17 +132,6 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Session expired",
-          description: "Please log in again to continue",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({
         title: "Unable to save",
         description: error.message,
@@ -171,17 +160,6 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Session expired",
-          description: "Please log in again to continue",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({
         title: "Unable to delete",
         description: error.message,
