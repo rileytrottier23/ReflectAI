@@ -1,15 +1,17 @@
 import { Sprout, BookOpen, TrendingUp, Star } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
+
   const handleLogin = () => {
-    window.location.href = "/auth";
+    setLocation("/sign-in");
   };
 
   const handleRegister = () => {
-    window.location.href = "/auth?mode=register";
+    setLocation("/sign-up");
   };
 
   return (
@@ -60,104 +62,76 @@ export default function Landing() {
             </Button>
           </div>
 
-          {/* Mock Journal Entry Card */}
-          <div className="bg-white rounded-xl shadow-lg border border-beige-300 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-display font-semibold text-black">Today's Entry</h3>
-              <p className="text-sm text-gray-700">May 6, 2025</p>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-800 mb-2">How are you feeling today?</label>
-              <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                <span>Not great</span>
-                <span className="font-medium text-sage-600">7/10</span>
-                <span>Excellent</span>
-              </div>
-              <div className="w-full h-2 bg-beige-300 rounded-lg relative">
-                <div className="h-2 bg-sage-500 rounded-lg" style={{ width: '70%' }}></div>
-              </div>
-            </div>
-            
-            <div className="border border-beige-300 rounded-lg p-4 bg-beige-100">
-              <p className="text-sm text-gray-700 leading-relaxed">
-                Today was quite productive. I finished the major project I've been working on for weeks, 
-                and the client seemed really happy with the results...
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Features Section */}
-        <div className="mt-24">
-          <h2 className="text-3xl font-display font-semibold text-center text-black mb-12">Features</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="text-center border-beige-300 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-sage-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <BookOpen className="w-8 h-8 text-sage-600" />
-                </div>
-                <CardTitle className="font-display text-lg font-semibold text-black">Daily Journaling</CardTitle>
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <Card className="border-beige-300 bg-white shadow-sm">
+              <CardHeader className="pb-3">
+                <BookOpen className="text-sage-600 h-8 w-8 mb-2" />
+                <CardTitle className="text-lg font-display text-black">Daily Journaling</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription className="text-gray-700 text-sm leading-relaxed">
-                  Record your thoughts, experiences, and emotions in a beautiful, easy-to-use interface.
+              <CardContent>
+                <CardDescription className="text-gray-600">
+                  Record your daily thoughts and mood with our intuitive journaling interface.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card className="text-center border-beige-300 bg-white shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="w-16 h-16 bg-leather-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <Star className="w-8 h-8 text-leather-600" />
-                </div>
-                <CardTitle className="font-display text-lg font-semibold text-black">AI Reflections</CardTitle>
+            <Card className="border-beige-300 bg-white shadow-sm">
+              <CardHeader className="pb-3">
+                <TrendingUp className="text-sage-600 h-8 w-8 mb-2" />
+                <CardTitle className="text-lg font-display text-black">Track Progress</CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription className="text-gray-700 text-sm leading-relaxed">
-                  Get personalized monthly summaries and insights powered by advanced AI analysis.
+              <CardContent>
+                <CardDescription className="text-gray-600">
+                  Monitor your happiness scores and identify patterns over time.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="border-beige-300 bg-white shadow-sm">
+              <CardHeader className="pb-3">
+                <Star className="text-sage-600 h-8 w-8 mb-2" />
+                <CardTitle className="text-lg font-display text-black">AI Insights</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-gray-600">
+                  Get personalized counselor-style reports powered by AI analysis.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="border-beige-300 bg-white shadow-sm">
+              <CardHeader className="pb-3">
+                <Sprout className="text-sage-600 h-8 w-8 mb-2" />
+                <CardTitle className="text-lg font-display text-black">Personal Growth</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-gray-600">
+                  Cultivate mindfulness and self-awareness through consistent reflection.
                 </CardDescription>
               </CardContent>
             </Card>
           </div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="mt-24 bg-sage-600 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-3xl font-display font-semibold mb-4">Start Your Journaling Journey Today</h2>
-          <p className="text-lg text-beige-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of people who have improved their self-awareness and mental clarity 
-            through regular journaling.
-          </p>
-          <Button 
-            onClick={handleRegister}
-            className="bg-white text-black hover:bg-beige-100 hover:text-gray-800 px-8 py-3 text-lg font-medium"
-          >
-            Sign Up Now
-          </Button>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-sage-600 border-t border-sage-500 mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Sprout className="text-white h-8 w-8 mr-3" />
-              <span className="font-display font-bold text-white text-2xl">ReflectAI</span>
-            </div>
-            <div className="flex items-center space-x-6 text-sm text-beige-100">
-              <Link href="/contact">
-                <span className="hover:text-white cursor-pointer transition-colors">Contact</span>
-              </Link>
-              <Link href="/privacy-policy">
-                <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
-              </Link>
-            </div>
-          </div>
-          <div className="mt-4 text-center text-sm text-beige-100">
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-8 border-t border-beige-300">
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="text-sm text-gray-600">
             © 2025 ReflectAI. All rights reserved.
+          </div>
+          <div className="flex space-x-6">
+            <Link href="/privacy-policy">
+              <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
+                Privacy Policy
+              </span>
+            </Link>
+            <Link href="/contact">
+              <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
+                Contact Support
+              </span>
+            </Link>
           </div>
         </div>
       </footer>

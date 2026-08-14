@@ -11,9 +11,8 @@ ReflectAI is a full-stack personal journaling application that combines traditio
 - **Backend**: Express.js with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **UI Framework**: Tailwind CSS with shadcn/ui components
-- **Authentication**: Passport.js with local strategy (email/password)
+- **Authentication**: Clerk (Replit-managed)
 - **AI Integration**: OpenAI GPT for generating counselor reports
-- **Session Management**: Express sessions with PostgreSQL store
 - **Query Management**: TanStack Query (React Query)
 
 ### Architecture Pattern
@@ -27,31 +26,31 @@ The application follows a monorepo structure with clear separation between clien
 ### Frontend Architecture
 - **Component-based UI**: Built with React functional components and hooks
 - **State Management**: TanStack Query for server state, React hooks for local state
-- **Routing**: Wouter for client-side routing
+- **Routing**: Wouter for client-side routing inside `<ClerkProvider>`
 - **Styling**: Tailwind CSS with custom color palette (sage green/beige theme)
 - **Form Handling**: React Hook Form with Zod validation
-- **Authentication Context**: Custom auth provider managing user sessions
+- **Authentication**: Clerk's `useAuth()` / `useUser()` / `useClerk()` hooks from `@clerk/react`
 
 ### Backend Architecture
 - **RESTful API**: Express.js with TypeScript providing structured endpoints
-- **Authentication Middleware**: Passport.js with session-based authentication
+- **Authentication Middleware**: Clerk (`@clerk/express`) with cookie-based sessions
 - **Database Layer**: Drizzle ORM with PostgreSQL for type-safe queries
 - **AI Service**: OpenAI integration for generating counselor reports
-- **Session Storage**: PostgreSQL-backed sessions for security
+- **Auth Bridge**: Email-based JIT provisioning links Clerk sessions to local `users` rows
 
 ### Database Design
-- **Users Table**: Stores user credentials (email/password hash)
+- **Users Table**: Stores local app data; email is the bridge column linking to Clerk identity
 - **Journal Entries Table**: Stores daily entries with content, happiness scores, and dates
-- **Sessions Table**: Manages user sessions (required for authentication)
+- **Sessions Table**: Legacy table kept for backwards compatibility — not actively used
 - **Unique Constraints**: One journal entry per user per date
 
 ## Data Flow
 
 ### Authentication Flow
-1. User registers/logs in via email/password
-2. Server validates credentials and creates session
-3. Session cookie sent to client for subsequent requests
-4. Protected routes verify authentication before data access
+1. User signs in/up via Clerk's hosted sign-in/sign-up pages (`/sign-in`, `/sign-up`)
+2. Clerk issues a session cookie handled by `@clerk/express` middleware
+3. `requireAuth` middleware bridges the Clerk session to a local `users` row by email (JIT)
+4. Protected routes use `req.dbUser.id` for all database queries
 
 ### Journal Entry Flow
 1. User selects date from calendar widget
@@ -73,7 +72,8 @@ The application follows a monorepo structure with clear separation between clien
 - **@neondatabase/serverless**: Database connection for PostgreSQL
 - **drizzle-orm**: Type-safe ORM for database operations
 - **openai**: Official OpenAI API client
-- **passport**: Authentication middleware
+- **@clerk/express**: Clerk server middleware
+- **@clerk/react**: Clerk React SDK
 - **@tanstack/react-query**: Server state management
 - **react-hook-form**: Form handling and validation
 - **zod**: Runtime type validation
@@ -95,11 +95,13 @@ The application follows a monorepo structure with clear separation between clien
 - **Frontend**: Vite builds React app to static files
 - **Backend**: ESBuild compiles TypeScript to Node.js bundle
 - **Single Server**: Express serves both API and static files
-- **Environment Variables**: Required for database, session secret, and OpenAI API
+- **Environment Variables**: Required for database, Clerk keys, and OpenAI API
 
 ### Required Environment Variables
-- `DATABASE_URL`: PostgreSQL connection string
-- `SESSION_SECRET`: Secure random string for session encryption
+- `DATABASE_URL` / `NEON_DATABASE_URL`: PostgreSQL connection string
+- `CLERK_SECRET_KEY`: Auto-provisioned by Replit Clerk integration
+- `CLERK_PUBLISHABLE_KEY`: Auto-provisioned by Replit Clerk integration
+- `VITE_CLERK_PUBLISHABLE_KEY`: Auto-provisioned by Replit Clerk integration
 - `AI_INTEGRATIONS_OPENAI_API_KEY`: Replit AI Integrations API key (auto-managed)
 - `AI_INTEGRATIONS_OPENAI_BASE_URL`: Replit AI Integrations base URL (auto-managed)
 - `NODE_ENV`: Environment setting (development/production)
@@ -107,24 +109,15 @@ The application follows a monorepo structure with clear separation between clien
 ## Security Features
 
 ### Authentication Security
-- **Rate Limiting**: Login limited to 20 attempts per 15 minutes, registration limited to 5 per hour per IP
-- **Account Lockout**: Accounts locked for 1 hour after 10 failed login attempts (in-memory tracking)
-- **Password Complexity**: Requires 8+ characters with uppercase, lowercase, numbers, and special characters
-- **User Enumeration Prevention**: Registration returns generic messages that don't reveal existing accounts
-- **Custom Session Cookie Name**: Uses `__reflectai_sid` instead of default `connect.sid`
-- **Password Stripping**: Password hash removed from user objects during session deserialization
+- **Clerk-managed identity**: Clerk handles password hashing, session issuance, and token verification
+- **Email-based JIT bridge**: `requireAuth` middleware looks up local user by `sessionClaims.email`
+- **Cookie-based sessions**: Web auth uses Clerk session cookies — no bearer tokens in browser requests
+- **AI Report Rate Limiting**: Limited to 5 report generations per hour per IP
 
 ### Application Security
 - **Security Headers**: Helmet.js providing X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, CORP, COOP, Referrer-Policy, X-DNS-Prefetch-Control
-- **Secure Cookies**: HttpOnly, SameSite=lax, and Secure (in production) cookie settings
-- **POST-only Logout**: Logout only accepts POST requests to prevent CSRF logout attacks
-- **Sanitized Error Logging**: Error details not logged to console to prevent sensitive data exposure
-
-### AI Security
-- **Replit AI Integrations**: Uses managed API keys (no user-managed secrets)
 - **Prompt Injection Protection**: Journal entries wrapped in delimiter tags with instructions to AI to ignore embedded commands
 - **Content Truncation**: Journal entries truncated to 5,000 characters before AI processing
-- **AI Report Rate Limiting**: Limited to 5 report generations per hour per IP
 
 ## Changelog
 ```
@@ -132,7 +125,8 @@ Changelog:
 - June 30, 2025. Initial setup
 - July 29, 2025. Updated AI counselor prompt to use therapeutic approach: compassionate yet direct tone, pattern identification, specific feedback on emotional wellbeing, and actionable recommendations tied to observed behaviors. Added spell check functionality with red wavy underlines and right-click corrections.
 - February 2, 2026. Security hardening: Switched to PostgreSQL session storage, added rate limiting, account lockout, password complexity requirements, security headers (Helmet), request size limits, AI prompt injection protection. Migrated to Replit AI Integrations for OpenAI.
-- February 21, 2026. Comprehensive security review and fixes: Added rate limiting (express-rate-limit) to login/register/AI endpoints, fixed user enumeration on registration, removed GET logout handler, added Helmet security headers, enforced SESSION_SECRET, stripped password from deserialized user objects, sanitized error logging (removed console.error of sensitive data), added account lockout after 10 failures, changed cookie name to __reflectai_sid, added prompt injection protection with delimiter tags and content truncation for AI service.
+- February 21, 2026. Comprehensive security review and fixes: Added rate limiting, fixed user enumeration on registration, removed GET logout handler, added Helmet security headers, enforced SESSION_SECRET, stripped password from deserialized user objects, sanitized error logging, added account lockout after 10 failures, changed cookie name to __reflectai_sid, added prompt injection protection.
+- August 14, 2026. Migrated authentication from Passport.js local strategy to Clerk (Replit-managed). Auth now uses Clerk session cookies; local users table bridged by email via JIT provisioning in requireAuth middleware.
 ```
 
 ## User Preferences

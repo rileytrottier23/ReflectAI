@@ -14,8 +14,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Session storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// Session storage table (kept for backwards compatibility — do not drop).
 export const sessions = pgTable(
   "sessions",
   {
@@ -26,11 +25,13 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for email/password authentication
+// User storage table — Clerk owns identity, local table owns app data.
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 255 }).unique().notNull(),
-  password: varchar("password", { length: 255 }).notNull(),
+  // Password column kept for schema compatibility; Clerk manages auth.
+  // New users created via JIT provisioning use a sentinel value.
+  password: varchar("password", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1,26 +1,21 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
+import { requireAuth } from "./middlewares/requireAuth";
 import { generateCounselorReport, generateAnnualCounselorReport } from "./ai-service";
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 
-function isAuthenticated(req: any, res: any, next: any) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ message: "Please log in to continue" });
-}
-
 export async function registerRoutes(app: Express): Promise<Server> {
 
-  setupAuth(app);
+  app.get("/api/user", requireAuth, async (req: any, res) => {
+    res.json({ id: req.dbUser.id, email: req.dbUser.email });
+  });
 
-  app.get("/api/journal/entries", isAuthenticated, async (req: any, res) => {
+  app.get("/api/journal/entries", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const entries = await storage.getUserJournalEntries(userId);
       res.json(entries);
     } catch (error) {
@@ -28,9 +23,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+  app.get("/api/journal/entries/:date", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { date } = req.params;
       
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
@@ -49,9 +44,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/journal/entries", isAuthenticated, async (req: any, res) => {
+  app.post("/api/journal/entries", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const validatedData = insertJournalEntrySchema.parse(req.body);
       
       const existingEntry = await storage.getJournalEntry(userId, validatedData.date);
@@ -69,9 +64,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+  app.put("/api/journal/entries/:date", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { date } = req.params;
       
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
@@ -90,9 +85,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/journal/entries/:date", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/journal/entries/:date", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { date } = req.params;
       
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date))) {
@@ -106,9 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/journal/entries/month/:year/:month", isAuthenticated, async (req: any, res) => {
+  app.get("/api/journal/entries/month/:year/:month", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { year, month } = req.params;
       
       const yearNum = parseInt(year);
@@ -133,9 +128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     legacyHeaders: false,
   });
 
-  app.get("/api/counselor/reports/monthly", isAuthenticated, async (req: any, res) => {
+  app.get("/api/counselor/reports/monthly", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const reports = await storage.getSavedReports(userId, 'monthly');
       res.json(reports);
     } catch (error) {
@@ -143,9 +138,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/counselor/reports/annual", isAuthenticated, async (req: any, res) => {
+  app.get("/api/counselor/reports/annual", requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const reports = await storage.getSavedReports(userId, 'annual');
       res.json(reports);
     } catch (error) {
@@ -153,9 +148,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/counselor/report", isAuthenticated, aiReportLimiter, async (req: any, res) => {
+  app.post("/api/counselor/report", requireAuth, aiReportLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { month, year } = req.body;
       
       if (!month || !year || month < 1 || month > 12 || year < 1900 || year > 2100) {
@@ -173,9 +168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/counselor/annual-report", isAuthenticated, aiReportLimiter, async (req: any, res) => {
+  app.post("/api/counselor/annual-report", requireAuth, aiReportLimiter, async (req: any, res) => {
     try {
-      const userId = req.user.id.toString();
+      const userId = req.dbUser.id.toString();
       const { year } = req.body;
 
       if (!year || year < 1900 || year > 2100) {
