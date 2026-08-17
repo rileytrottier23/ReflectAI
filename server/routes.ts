@@ -7,8 +7,12 @@ import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/sche
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { handleMcpRequest } from "./mcp";
+import { createOAuthRouter } from "./oauth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // OAuth 2.0 endpoints (for Claude MCP connector)
+  app.use(createOAuthRouter());
 
   app.get("/api/user", requireAuth, async (req: any, res) => {
     res.json({ id: req.dbUser.id, email: req.dbUser.email });
@@ -199,6 +203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     const auth = req.headers["authorization"];
     if (!auth || auth !== `Bearer ${token}`) {
+      const base = `${req.protocol}://${req.headers.host}`;
+      res.setHeader(
+        "WWW-Authenticate",
+        `Bearer realm="ReflectAI Journal", resource_metadata="${base}/.well-known/oauth-authorization-server"`
+      );
       return res.status(401).json({ error: "Unauthorized" });
     }
     // Resolve the user this MCP server belongs to
