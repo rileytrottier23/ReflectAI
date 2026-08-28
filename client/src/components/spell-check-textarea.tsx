@@ -191,7 +191,7 @@ export default function SpellCheckTextarea({
   // Handle ignore word
   const handleIgnoreWord = () => {
     const cleanWord = contextMenu.word.toLowerCase().replace(/[^a-z]/g, '');
-    setIgnoredWords(prev => new Set([...prev, cleanWord]));
+    setIgnoredWords(prev => new Set(Array.from(prev).concat(cleanWord)));
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
