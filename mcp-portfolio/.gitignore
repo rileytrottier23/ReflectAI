@@ -1,0 +1,20 @@
+node_modules/
+dist/
+
+# Environment — never commit real secrets
+.env
+
+# Local SQLite files if you swap in a SQLite store
+*.sqlite
+*.sqlite3
+*.db
+
+# Journal data exports
+*.json.bak
+exports/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -63,6 +63,95 @@ function createMcpServer(userId: string): McpServer {
     }
   );
 
+  // ── Tool: update_entry ────────────────────────────────────────────────────
+  server.tool(
+    "update_entry",
+    "Edit an existing journal entry. You can change its content, happiness score, or both. " +
+    "The date identifies the entry and cannot be changed.",
+    {
+      date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .describe("Date of the entry to edit (YYYY-MM-DD)"),
+      content: z
+        .string()
+        .min(1)
+        .max(10000)
+        .optional()
+        .describe("Replacement journal entry text"),
+      happiness_score: z
+        .number()
+        .int()
+        .min(1)
+        .max(10)
+        .optional()
+        .describe("Replacement happiness score from 1 (very low) to 10 (excellent)"),
+    },
+    async ({ date, content, happiness_score }) => {
+      if (content === undefined && happiness_score === undefined) {
+        return {
+          isError: true,
+          content: [
+            { type: "text" as const, text: "Provide content, happiness_score, or both to update the entry." },
+          ],
+        };
+      }
+
+      const existing = await storage.getJournalEntry(userId, date);
+      if (!existing) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: `No journal entry found for ${date}.` }],
+        };
+      }
+
+      const changes: { content?: string; happinessScore?: number } = {};
+      if (content !== undefined) changes.content = content;
+      if (happiness_score !== undefined) changes.happinessScore = happiness_score;
+
+      const updated = await storage.updateJournalEntry(userId, date, changes);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `✓ Updated journal entry for ${updated.date} (happiness: ${updated.happinessScore}/10).`,
+          },
+        ],
+      };
+    }
+  );
+
+  // ── Tool: delete_entry ────────────────────────────────────────────────────
+  server.tool(
+    "delete_entry",
+    "Permanently remove an existing journal entry. Ask the user for confirmation before calling this tool.",
+    {
+      date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .describe("Date of the entry to remove (YYYY-MM-DD)"),
+      confirm: z
+        .literal("DELETE")
+        .describe("Must be exactly DELETE, supplied only after the user explicitly confirms permanent deletion"),
+    },
+    async ({ date }) => {
+      const existing = await storage.getJournalEntry(userId, date);
+      if (!existing) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: `No journal entry found for ${date}.` }],
+        };
+      }
+
+      await storage.deleteJournalEntry(userId, date);
+      return {
+        content: [
+          { type: "text" as const, text: `✓ Deleted journal entry for ${date}.` },
+        ],
+      };
+    }
+  );
+
   // ── Tool: list_recent_entries ─────────────────────────────────────────────
   server.tool(
     "list_recent_entries",
