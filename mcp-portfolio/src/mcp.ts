@@ -1,20 +1,28 @@
+/**
+ * MCP server — 5 tools for reading and writing journal entries.
+ *
+ * Transport: Streamable HTTP (stateless, one session per request).
+ * Each request creates a fresh McpServer bound to a JournalStore and a userId.
+ */
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
-import { storage } from "./storage";
 import type { Request, Response } from "express";
+import type { JournalStore } from "./journalStore.js";
 
 function todayDate(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-function createMcpServer(userId: string): McpServer {
-  const server = new McpServer({ name: "reflect-journal", version: "1.0.0" });
+function createMcpServer(store: JournalStore, userId: string): McpServer {
+  const server = new McpServer({ name: "journal-mcp-server", version: "1.0.0" });
 
   // ── Tool: create_entry ────────────────────────────────────────────────────
   server.tool(
     "create_entry",
-    "Create a new journal entry. One entry per calendar day is allowed. If an entry already exists for that date, this will fail — use update_entry instead.",
+    "Create a new journal entry. One entry per calendar day is allowed. " +
+    "If an entry already exists for that date, this will fail — ask the user to clarify before retrying.",
     {
       content: z
         .string()
@@ -35,19 +43,20 @@ function createMcpServer(userId: string): McpServer {
     },
     async ({ content, happiness_score, date }) => {
       const entryDate = date ?? todayDate();
-      const existing = await storage.getJournalEntry(userId, entryDate);
+      const existing = await store.getEntry(userId, entryDate);
       if (existing) {
         return {
           isError: true,
           content: [
             {
               type: "text" as const,
-              text: `An entry already exists for ${entryDate} (happiness: ${existing.happinessScore}/10). To modify it, ask me to update the entry for that date.`,
+              text: `An entry already exists for ${entryDate} (happiness: ${existing.happinessScore}/10). ` +
+                    `Ask the user whether they'd like to replace or amend it.`,
             },
           ],
         };
       }
-      const entry = await storage.createJournalEntry(userId, {
+      const entry = await store.createEntry(userId, {
         content,
         happinessScore: happiness_score,
         date: entryDate,
@@ -97,7 +106,7 @@ function createMcpServer(userId: string): McpServer {
         };
       }
 
-      const existing = await storage.getJournalEntry(userId, date);
+      const existing = await store.getEntry(userId, date);
       if (!existing) {
         return {
           isError: true,
@@ -109,7 +118,13 @@ function createMcpServer(userId: string): McpServer {
       if (content !== undefined) changes.content = content;
       if (happiness_score !== undefined) changes.happinessScore = happiness_score;
 
-      const updated = await storage.updateJournalEntry(userId, date, changes);
+      const updated = await store.updateEntry(userId, date, changes);
+      if (!updated) {
+        return {
+          isError: true,
+          content: [{ type: "text" as const, text: `No journal entry found for ${date}.` }],
+        };
+      }
       return {
         content: [
           {
@@ -135,7 +150,7 @@ function createMcpServer(userId: string): McpServer {
         .describe("Must be exactly DELETE, supplied only after the user explicitly confirms permanent deletion"),
     },
     async ({ date }) => {
-      const existing = await storage.getJournalEntry(userId, date);
+      const existing = await store.getEntry(userId, date);
       if (!existing) {
         return {
           isError: true,
@@ -143,7 +158,7 @@ function createMcpServer(userId: string): McpServer {
         };
       }
 
-      await storage.deleteJournalEntry(userId, date);
+      await store.deleteEntry(userId, date);
       return {
         content: [
           { type: "text" as const, text: `✓ Deleted journal entry for ${date}.` },
@@ -166,8 +181,7 @@ function createMcpServer(userId: string): McpServer {
         .describe("Number of entries to return (default 5, max 50)"),
     },
     async ({ count }) => {
-      const all = await storage.getUserJournalEntries(userId);
-      const entries = all.slice(0, count);
+      const entries = await store.listRecent(userId, count);
       if (entries.length === 0) {
         return {
           content: [{ type: "text" as const, text: "No journal entries found." }],
@@ -191,7 +205,7 @@ function createMcpServer(userId: string): McpServer {
         .describe("Date in YYYY-MM-DD format, e.g. 2026-08-13"),
     },
     async ({ date }) => {
-      const entry = await storage.getJournalEntry(userId, date);
+      const entry = await store.getEntry(userId, date);
       if (!entry) {
         return {
           isError: true,
@@ -214,7 +228,8 @@ function createMcpServer(userId: string): McpServer {
   // ── Tool: search_entries ──────────────────────────────────────────────────
   server.tool(
     "search_entries",
-    "Search journal entries by keyword (case-insensitive full-text search on entry content). Returns matching entries newest first.",
+    "Search journal entries by keyword (case-insensitive full-text search on entry content). " +
+    "Returns matching entries newest first.",
     {
       query: z
         .string()
@@ -229,7 +244,7 @@ function createMcpServer(userId: string): McpServer {
         .describe("Maximum number of results to return (default 10)"),
     },
     async ({ query, limit }) => {
-      const results = await storage.searchJournalEntries(userId, query, limit);
+      const results = await store.searchEntries(userId, query, limit);
       if (results.length === 0) {
         return {
           content: [
@@ -254,7 +269,8 @@ function createMcpServer(userId: string): McpServer {
   // ── Tool: get_mood_summary ────────────────────────────────────────────────
   server.tool(
     "get_mood_summary",
-    "Summarise happiness scores across a date range. Returns average, min, max, entry count, and a breakdown by score tier. Useful for spotting mood trends.",
+    "Summarise happiness scores across a date range. Returns average, min, max, entry count, " +
+    "and a breakdown by score tier. Useful for spotting mood trends.",
     {
       start_date: z
         .string()
@@ -266,11 +282,7 @@ function createMcpServer(userId: string): McpServer {
         .describe("End date (YYYY-MM-DD, inclusive)"),
     },
     async ({ start_date, end_date }) => {
-      const entries = await storage.getJournalEntriesInRange(
-        userId,
-        start_date,
-        end_date
-      );
+      const entries = await store.getEntriesInRange(userId, start_date, end_date);
       if (entries.length === 0) {
         return {
           content: [
@@ -309,11 +321,18 @@ function createMcpServer(userId: string): McpServer {
   return server;
 }
 
-// Called by the Express route handler for every /mcp request
-export async function handleMcpRequest(req: Request, res: Response): Promise<void> {
+/**
+ * Express route handler for POST /mcp.
+ * The request must already have req.mcpUserId set by mcpAuth middleware.
+ */
+export async function handleMcpRequest(
+  store: JournalStore,
+  req: Request,
+  res: Response
+): Promise<void> {
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   const userId = (req as any).mcpUserId as string;
-  const server = createMcpServer(userId);
+  const server = createMcpServer(store, userId);
   res.on("close", () => transport.close());
   await server.connect(transport);
   await transport.handleRequest(req, res, req.body);
