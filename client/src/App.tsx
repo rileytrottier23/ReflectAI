@@ -61,54 +61,94 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-lg",
+    cardBox: "!bg-[#fffdf8] !border !border-[#d9e3d4] !rounded-[28px] w-[440px] max-w-full overflow-hidden !shadow-[0_24px_70px_rgba(67,86,61,0.14)]",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-black font-semibold",
-    headerSubtitle: "text-gray-600",
-    socialButtonsBlockButtonText: "text-gray-700",
-    formFieldLabel: "text-black",
-    footerActionLink: "text-[#7D9371] hover:text-[#647A5A]",
-    footerActionText: "text-gray-600",
-    dividerText: "text-gray-500",
-    identityPreviewEditButton: "text-[#7D9371]",
-    formFieldSuccessText: "text-[#7D9371]",
-    alertText: "text-gray-700",
-    logoBox: "mb-2",
+    headerTitle: "!text-[#203020] !font-semibold",
+    headerSubtitle: "!text-[#5e6d5b]",
+    socialButtonsBlockButtonText: "!text-[#344434]",
+    formFieldLabel: "!text-[#203020]",
+    footerActionLink: "!text-[#637d58] hover:!text-[#496340]",
+    footerActionText: "!text-[#5e6d5b]",
+    dividerText: "!text-[#71806f]",
+    identityPreviewEditButton: "!text-[#637d58]",
+    formFieldSuccessText: "!text-[#637d58]",
+    alertText: "!text-[#344434]",
+    logoBox: "hidden",
     logoImage: "h-10 w-10",
-    socialButtonsBlockButton: "border border-gray-200 hover:bg-gray-50",
-    formButtonPrimary: "bg-[#7D9371] hover:bg-[#647A5A] text-white",
-    formFieldInput: "border-gray-300 bg-gray-50 text-black",
+    socialButtonsBlockButton: "!border-[#d9e3d4] !bg-[#fbfdf9] hover:!bg-[#f1f6ee] !rounded-xl",
+    formButtonPrimary: "!bg-[#718d66] hover:!bg-[#5f7a55] !text-white !rounded-xl !shadow-[0_8px_18px_rgba(95,122,85,0.2)]",
+    formFieldInput: "!border-[#d9e3d4] !bg-[#fbfdf9] !text-[#203020] focus:!border-[#8aa27f] focus:!ring-[#cbdac6]",
     footerAction: "bg-transparent",
-    dividerLine: "bg-gray-200",
-    alert: "bg-gray-50",
-    otpCodeFieldInput: "border-gray-300",
+    dividerLine: "!bg-[#d9e3d4]",
+    alert: "!bg-[#f3f7f1] !border-[#d9e3d4]",
+    otpCodeFieldInput: "!border-[#d9e3d4]",
     formFieldRow: "",
     main: "",
   },
 };
 
+function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative flex min-h-[100dvh] items-start justify-center overflow-y-auto bg-[#edf2eb] px-4">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-24 -top-28 h-80 w-80 rounded-full bg-[#d5e4cf]/75 blur-3xl" />
+        <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-[#dce8d6]/80 blur-3xl" />
+        <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-white/45 blur-3xl" />
+      </div>
+
+      <main className="relative z-10 flex w-full max-w-[440px] flex-col items-center py-8 sm:py-12">
+        <a
+          href={basePath || "/"}
+          className="group flex flex-col items-center text-center"
+          aria-label="ReflectAI home"
+        >
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#cbdac6] bg-[#f9fcf7] shadow-[0_8px_22px_rgba(67,86,61,0.12)] transition-transform duration-200 group-hover:-translate-y-0.5">
+            <img
+              src={`${window.location.origin}${basePath}/favicon.svg`}
+              alt=""
+              className="h-9 w-9"
+            />
+          </span>
+          <span className="mt-4 font-display text-3xl font-semibold tracking-[-0.03em] text-[#203020]">
+            ReflectAI
+          </span>
+          <span className="mt-1 text-sm text-[#5e6d5b]">
+            Your personal journaling companion
+          </span>
+        </a>
+
+        <div className="mt-8 w-full">{children}</div>
+
+        <p className="mt-6 text-center text-xs tracking-wide text-[#71806f]">
+          A private space to pause, reflect, and move forward.
+        </p>
+      </main>
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#E0E0E0] px-4">
+    <AuthShell>
       <SignIn
         routing="path"
         path={`${basePath}/sign-in`}
         signUpUrl={`${basePath}/sign-up`}
       />
-    </div>
+    </AuthShell>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#E0E0E0] px-4">
+    <AuthShell>
       <SignUp
         routing="path"
         path={`${basePath}/sign-up`}
         signInUrl={`${basePath}/sign-in`}
       />
-    </div>
+    </AuthShell>
   );
 }
 
