@@ -8,9 +8,11 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// SSL is derived from DATABASE_URL itself (e.g. a hosted Postgres that sets
+// ?sslmode=require) rather than forced from NODE_ENV — Railway's own Postgres
+// has no SSL listener at all, so forcing it here broke every connection.
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
 });
 
 export const db = drizzle(pool, { schema });
