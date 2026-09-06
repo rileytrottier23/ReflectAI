@@ -12,6 +12,11 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Railway terminates TLS at its edge and forwards X-Forwarded-Proto; without
+// trusting the proxy, req.protocol always reports "http" here, which leaked
+// into the OAuth discovery doc and WWW-Authenticate header as http:// URLs.
+app.set("trust proxy", 1);
+
 // Clerk proxy must be mounted BEFORE body parsers (streams raw bytes)
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
