@@ -16,9 +16,6 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
-  optimizeDeps: {
-    include: ["@clerk/react", "@clerk/shared", "@clerk/themes"],
-  },
   server: {
     fs: {
       strict: true,
