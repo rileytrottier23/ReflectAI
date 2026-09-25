@@ -8,11 +8,17 @@ import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { handleMcpRequest } from "./mcp";
 import { createOAuthRouter } from "./oauth";
+import { googleEnabled } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // OAuth 2.0 endpoints (for Claude MCP connector)
   app.use(createOAuthRouter());
+
+  // Tells the sign-in page which providers are configured on this server.
+  app.get("/api/auth-options", (_req, res) => {
+    res.json({ google: googleEnabled });
+  });
 
   app.get("/api/user", requireAuth, async (req: any, res) => {
     res.json({ id: req.dbUser.id, email: req.dbUser.email });

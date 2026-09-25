@@ -1,331 +1,414 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Sprout, Eye, EyeOff, Check, X } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { Link, useLocation, useSearch } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, MailCheck } from "lucide-react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { authClient } from "@/lib/auth-client";
 
-const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const appUrl = (path: string) => `${window.location.origin}${basePath}${path}`;
 
-const registerSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain an uppercase letter")
-    .regex(/[a-z]/, "Password must contain a lowercase letter")
-    .regex(/\d/, "Password must contain a number")
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Password must contain a special character"),
-});
+const inputClass =
+  "h-11 w-full rounded-xl border border-[#cfd9ca] bg-white px-3.5 text-[0.95rem] text-[#1f2a1d] shadow-[inset_0_1px_2px_rgba(31,51,38,0.04)] outline-none transition-shadow placeholder:text-[#9aa896] hover:border-[#b3c3ab] focus:border-[#4a6741] focus:ring-4 focus:ring-[#4a6741]/15";
+const primaryButtonClass =
+  "flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#4a6741] text-[0.95rem] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(74,103,65,0.55)] transition-colors hover:bg-[#3c5535] active:bg-[#334a2d] disabled:cursor-not-allowed disabled:opacity-70";
+const linkClass = "font-semibold text-[#c2703d] hover:text-[#a55a2b]";
 
-type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
+function useAuthOptions() {
+  return useQuery<{ google: boolean }>({
+    queryKey: ["/api/auth-options"],
+    staleTime: Infinity,
+  });
+}
 
-export default function Auth() {
-  const [location] = useLocation();
-  const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const { toast } = useToast();
+function Header({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div>
+      <h1 className="font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em] text-[#1f2a1d]">
+        {title}
+      </h1>
+      <p className="mt-1 text-[0.95rem] text-[#5b6858]">{subtitle}</p>
+    </div>
+  );
+}
 
-  // Check URL parameter to determine if we should show register form
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'register') {
-      setIsLogin(false);
+function Field({
+  label,
+  action,
+  ...props
+}: { label: string; action?: ReactNode } & React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="flex items-center justify-between text-sm font-medium text-[#2c3a29]">
+        {label}
+        {action}
+      </span>
+      <input className={inputClass} {...props} />
+    </label>
+  );
+}
+
+function ErrorMessage({ message }: { message: string | null }) {
+  if (!message) return null;
+  return (
+    <p role="alert" className="rounded-xl border border-[#efd5c4] bg-[#fbf3ee] px-3.5 py-2.5 text-sm text-[#5a3a26]">
+      {message}
+    </p>
+  );
+}
+
+function SubmitButton({ pending, children }: { pending: boolean; children: ReactNode }) {
+  return (
+    <button type="submit" disabled={pending} className={primaryButtonClass}>
+      {pending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+      {children}
+    </button>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" aria-hidden="true">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
+    </svg>
+  );
+}
+
+function GoogleSection({ onError }: { onError: (message: string) => void }) {
+  const { data } = useAuthOptions();
+  const [pending, setPending] = useState(false);
+
+  if (!data?.google) return null;
+
+  const signInWithGoogle = async () => {
+    setPending(true);
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: appUrl("/journal"),
+      errorCallbackURL: appUrl("/sign-in"),
+    });
+    if (error) {
+      setPending(false);
+      onError(error.message ?? "Couldn't start Google sign-in. Please try again.");
     }
-  }, [location]);
-
-  const loginForm = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-      const response = await apiRequest("POST", "/api/login", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      window.location.href = "/";
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Unable to log in",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormData) => {
-      console.log("Attempting registration with:", { email: data.email });
-      const response = await apiRequest("POST", "/api/register", data);
-      return response.json();
-    },
-    onSuccess: (userData) => {
-      console.log("Registration successful:", userData);
-      toast({
-        title: "Welcome to ReflectAI!",
-        description: "Your account has been created successfully",
-        variant: "default",
-      });
-      window.location.href = "/";
-    },
-    onError: (error: Error) => {
-      console.error("Registration error:", error);
-      toast({
-        title: "Unable to create account",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onLoginSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
   };
-
-  const onRegisterSubmit = (data: RegisterFormData) => {
-    registerMutation.mutate(data);
-  };
-
-  const password = isLogin ? loginForm.watch("password") : registerForm.watch("password");
-
-  // Password strength requirements for registration
-  const requirements = [
-    { label: "At least 8 characters", test: (pwd: string) => pwd.length >= 8 },
-    { label: "Contains uppercase letter", test: (pwd: string) => /[A-Z]/.test(pwd) },
-    { label: "Contains lowercase letter", test: (pwd: string) => /[a-z]/.test(pwd) },
-    { label: "Contains number", test: (pwd: string) => /\d/.test(pwd) },
-    { label: "Contains special character", test: (pwd: string) => /[!@#$%^&*(),.?":{}|<>]/.test(pwd) },
-  ];
 
   return (
-    <div className="min-h-screen bg-beige-200 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <div className="flex items-center justify-center mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-              <Sprout className="text-sage-600 h-12 w-12 mr-3" />
-              <h1 className="text-4xl font-display font-bold text-black">ReflectAI</h1>
-            </div>
-          </Link>
-          <p className="text-gray-700 text-lg">Your personal journaling companion</p>
-        </div>
-
-        {/* Auth Card */}
-        <Card className="border-beige-300 bg-white shadow-lg">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-2xl font-display font-semibold text-black">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </CardTitle>
-            <p className="text-gray-600 text-sm mt-2">
-              {isLogin 
-                ? "Sign in to continue your journaling journey" 
-                : "Start your mindful reflection practice"
-              }
-            </p>
-          </CardHeader>
-          
-          <CardContent>
-            {isLogin ? (
-              <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-black">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    {...loginForm.register("email")}
-                    placeholder="Enter your email"
-                    type="email"
-                    className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                  {loginForm.formState.errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.email.message}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-black">
-                    Password
-                  </Label>
-                  <div className="relative mt-1">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      {...loginForm.register("password")}
-                      placeholder="Enter your password"
-                      className="border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  {loginForm.formState.errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{loginForm.formState.errors.password.message}</p>
-                  )}
-                </div>
-                
-                <Button
-                  type="submit"
-                  disabled={loginMutation.isPending}
-                  className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
-                >
-                  {loginMutation.isPending ? "Signing In..." : "Sign In"}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-black">
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    {...registerForm.register("email")}
-                    placeholder="Enter your email"
-                    type="email"
-                    className="mt-1 border-beige-300 focus:ring-sage-500 focus:border-sage-500"
-                  />
-                  {registerForm.formState.errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.email.message}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-black">
-                    Password
-                  </Label>
-                  <div className="relative mt-1">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      {...registerForm.register("password")}
-                      placeholder="Create a strong password"
-                      className="border-beige-300 focus:ring-sage-500 focus:border-sage-500 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                  {registerForm.formState.errors.password && (
-                    <p className="text-red-500 text-xs mt-1">{registerForm.formState.errors.password.message}</p>
-                  )}
-                </div>
-
-                {/* Password Requirements */}
-                {password && password.length > 0 && (
-                  <div className="bg-beige-100 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-black mb-2">Password Requirements:</h4>
-                    <div className="space-y-1">
-                      {requirements.map((req, index) => {
-                        const isMet = req.test(password);
-                        return (
-                          <div key={index} className="flex items-center text-xs">
-                            {isMet ? (
-                              <Check className="w-3 h-3 text-sage-600 mr-2" />
-                            ) : (
-                              <X className="w-3 h-3 text-gray-400 mr-2" />
-                            )}
-                            <span className={isMet ? 'text-sage-600' : 'text-gray-600'}>
-                              {req.label}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                
-                <Button
-                  type="submit"
-                  disabled={registerMutation.isPending}
-                  className="w-full bg-sage-500 hover:bg-sage-600 text-white py-3 text-base font-medium"
-                >
-                  {registerMutation.isPending ? "Creating Account..." : "Create Account"}
-                </Button>
-              </form>
-            )}
-            
-            <div className="mt-6 text-center">
-              <span className="text-gray-600 text-sm">
-                {isLogin ? "Don't have an account? " : "Already have an account? "}
-              </span>
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sage-600 hover:text-sage-700 font-medium text-sm"
-              >
-                {isLogin ? "Sign up" : "Sign in"}
-              </button>
-            </div>
-            
-            <div className="mt-6 pt-6 border-t border-beige-300">
-              <p className="text-xs text-gray-500 text-center leading-relaxed">
-                By continuing, you agree to our Terms of Service and Privacy Policy. 
-                Your data is secure and encrypted.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="text-center mt-8">
-          <p className="text-sm text-gray-600">
-            Need help? <Link href="/contact"><span className="text-sage-600 hover:text-sage-700 cursor-pointer">Contact Support</span></Link>
-          </p>
-        </div>
-        
-        {/* Footer */}
-        <div className="mt-12 pt-8 border-t border-beige-300">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-sm text-gray-600">
-              © 2025 ReflectAI. All rights reserved.
-            </div>
-            <div className="flex space-x-6">
-              <Link href="/privacy-policy">
-                <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
-                  Privacy Policy
-                </span>
-              </Link>
-              <Link href="/contact">
-                <span className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer transition-colors">
-                  Contact Support
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
+    <>
+      <button
+        type="button"
+        onClick={signInWithGoogle}
+        disabled={pending}
+        className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-[#cfd9ca] bg-white font-medium text-[#1f2a1d] shadow-[0_1px_2px_rgba(31,51,38,0.06)] transition-colors hover:border-[#b3c3ab] hover:bg-[#f4f7f2] disabled:opacity-70"
+      >
+        {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <GoogleIcon />}
+        Continue with Google
+      </button>
+      <div className="flex items-center gap-3 text-xs uppercase tracking-[0.14em] text-[#7a8776]">
+        <span className="h-px flex-1 bg-[#dbe3d6]" />
+        or
+        <span className="h-px flex-1 bg-[#dbe3d6]" />
       </div>
+    </>
+  );
+}
+
+function CheckEmail({ email, children }: { email: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-5">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef3eb] text-[#4a6741] ring-1 ring-[#cfd9ca]">
+        <MailCheck className="h-6 w-6" aria-hidden="true" />
+      </span>
+      <Header title="Check your email" subtitle={`We sent a link to ${email}.`} />
+      <p className="text-[0.95rem] leading-relaxed text-[#5b6858]">{children}</p>
+      <p className="text-[0.95rem] text-[#5b6858]">
+        <Link href="/sign-in" className={linkClass}>
+          Back to sign in
+        </Link>
+      </p>
     </div>
+  );
+}
+
+export function SignInPage() {
+  const search = new URLSearchParams(useSearch());
+  const [, setLocation] = useLocation();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [unverified, setUnverified] = useState(false);
+  const [error, setError] = useState<string | null>(
+    search.get("error") ? "That sign-in didn't work. Please try again." : null,
+  );
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPending(true);
+    setError(null);
+    const { error } = await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: appUrl("/journal"),
+    });
+    setPending(false);
+    if (!error) {
+      setLocation("/journal");
+    } else if (error.status === 403) {
+      // Better Auth re-sends the verification email on this attempt.
+      setUnverified(true);
+    } else {
+      setError(error.message ?? "Couldn't sign you in. Please try again.");
+    }
+  };
+
+  if (unverified) {
+    return (
+      <AuthShell>
+        <CheckEmail email={email}>
+          Your email address isn&rsquo;t confirmed yet. Open the link we just sent to finish signing in.
+        </CheckEmail>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-6">
+        <Header title="Welcome back" subtitle="Sign in to continue your journaling journey" />
+        <GoogleSection onError={setError} />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <Field
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+          <Field
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Your password"
+            action={
+              <Link href="/forgot-password" className="text-sm font-medium text-[#c2703d] hover:text-[#a55a2b]">
+                Forgot password?
+              </Link>
+            }
+          />
+          <ErrorMessage message={error} />
+          <SubmitButton pending={pending}>Sign in</SubmitButton>
+        </form>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          Don&rsquo;t have an account?{" "}
+          <Link href="/sign-up" className={linkClass}>
+            Sign up
+          </Link>
+        </p>
+      </div>
+    </AuthShell>
+  );
+}
+
+export function SignUpPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPending(true);
+    setError(null);
+    const { error } = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: appUrl("/journal"),
+    });
+    setPending(false);
+    if (error) {
+      setError(error.message ?? "Couldn't create your account. Please try again.");
+    } else {
+      setSent(true);
+    }
+  };
+
+  if (sent) {
+    return (
+      <AuthShell>
+        <CheckEmail email={email}>
+          Open the link in that email to confirm your address, and you&rsquo;ll be taken straight to your journal.
+        </CheckEmail>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-6">
+        <Header title="Create your account" subtitle="Start your mindful reflection practice" />
+        <GoogleSection onError={setError} />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <Field
+            label="Name"
+            autoComplete="name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="What should we call you?"
+          />
+          <Field
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+          <Field
+            label="Password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={10}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="At least 10 characters"
+          />
+          <ErrorMessage message={error} />
+          <SubmitButton pending={pending}>Create account</SubmitButton>
+        </form>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          Already have an account?{" "}
+          <Link href="/sign-in" className={linkClass}>
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </AuthShell>
+  );
+}
+
+export function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPending(true);
+    setError(null);
+    const { error } = await authClient.requestPasswordReset({
+      email,
+      redirectTo: appUrl("/reset-password"),
+    });
+    setPending(false);
+    if (error) {
+      setError(error.message ?? "Couldn't send the reset email. Please try again.");
+    } else {
+      setSent(true);
+    }
+  };
+
+  if (sent) {
+    return (
+      <AuthShell>
+        <CheckEmail email={email}>
+          If there&rsquo;s an account for that address, the email has a link to choose a new password. It expires in an hour.
+        </CheckEmail>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-6">
+        <Header title="Reset your password" subtitle="We'll email you a link to choose a new one." />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <Field
+            label="Email address"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+          <ErrorMessage message={error} />
+          <SubmitButton pending={pending}>Send reset link</SubmitButton>
+        </form>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          Remembered it?{" "}
+          <Link href="/sign-in" className={linkClass}>
+            Back to sign in
+          </Link>
+        </p>
+      </div>
+    </AuthShell>
+  );
+}
+
+export function ResetPasswordPage() {
+  const search = new URLSearchParams(useSearch());
+  const token = search.get("token");
+  const [, setLocation] = useLocation();
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(
+    !token || search.get("error") ? "This reset link is invalid or has expired. Request a new one." : null,
+  );
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setPending(true);
+    setError(null);
+    const { error } = await authClient.resetPassword({ newPassword: password, token });
+    setPending(false);
+    if (error) {
+      setError(error.message ?? "Couldn't reset your password. Please request a new link.");
+    } else {
+      setLocation("/sign-in");
+    }
+  };
+
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-6">
+        <Header title="Choose a new password" subtitle="Use at least 10 characters." />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <Field
+            label="New password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={10}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="At least 10 characters"
+            disabled={!token}
+          />
+          <ErrorMessage message={error} />
+          <SubmitButton pending={pending}>Save password</SubmitButton>
+        </form>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          <Link href="/forgot-password" className={linkClass}>
+            Request a new link
+          </Link>
+        </p>
+      </div>
+    </AuthShell>
   );
 }
