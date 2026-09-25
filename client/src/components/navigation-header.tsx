@@ -2,20 +2,23 @@ import { useState, useRef, useEffect } from "react";
 import { Sprout, BookOpen, BarChart3, LogOut, ChevronDown, Calendar, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import { useClerk } from "@clerk/react";
+import { useQueryClient } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client";
 
 interface NavigationHeaderProps {
   currentTab: "journal" | "reports";
 }
 
 export default function NavigationHeader({ currentTab }: NavigationHeaderProps) {
-  const { signOut } = useClerk();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [reportsOpen, setReportsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    signOut({ redirectUrl: "/" });
+  const handleLogout = async () => {
+    await authClient.signOut();
+    queryClient.clear();
+    setLocation("/sign-in");
   };
 
   useEffect(() => {
