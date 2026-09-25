@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Lock, Sparkles } from "lucide-react";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk, useAuth } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -39,7 +40,8 @@ if (!clerkPubKey) {
   throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in environment");
 }
 
-// Sage green: #7D9371 (sage-600), neutral gray: #E0E0E0 (beige-200)
+// Palette: deep forest #1f3326, primary green #4a6741 (AA contrast with white),
+// warm terracotta accent #c2703d, paper #fffdf8.
 const clerkAppearance = {
   theme: shadcn,
   options: {
@@ -48,79 +50,169 @@ const clerkAppearance = {
     logoImageUrl: `${window.location.origin}${basePath}/favicon.svg`,
   },
   variables: {
-    colorPrimary: "#7D9371",
-    colorForeground: "#000000",
-    colorMutedForeground: "#444444",
-    colorDanger: "#dc2626",
+    colorPrimary: "#4a6741",
+    colorForeground: "#1f2a1d",
+    colorMutedForeground: "#5b6858",
+    colorDanger: "#c2413d",
     colorBackground: "#ffffff",
-    colorInput: "#f5f5f5",
-    colorInputForeground: "#000000",
-    colorNeutral: "#D1D1D1",
-    fontFamily: "Georgia, 'Times New Roman', serif",
+    colorInput: "#ffffff",
+    colorInputForeground: "#1f2a1d",
+    colorNeutral: "#9aa896",
+    fontFamily: "'Inter', system-ui, sans-serif",
+    fontSize: "0.9375rem",
     borderRadius: "0.75rem",
   },
   elements: {
-    rootBox: "w-full flex justify-center",
-    cardBox: "!bg-[#fffdf8] !border !border-[#d9e3d4] !rounded-[28px] w-[440px] max-w-full overflow-hidden !shadow-[0_24px_70px_rgba(67,86,61,0.14)]",
-    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "!text-[#203020] !font-semibold",
-    headerSubtitle: "!text-[#5e6d5b]",
-    socialButtonsBlockButtonText: "!text-[#344434]",
-    formFieldLabel: "!text-[#203020]",
-    footerActionLink: "!text-[#637d58] hover:!text-[#496340]",
-    footerActionText: "!text-[#5e6d5b]",
-    dividerText: "!text-[#71806f]",
-    identityPreviewEditButton: "!text-[#637d58]",
-    formFieldSuccessText: "!text-[#637d58]",
-    alertText: "!text-[#344434]",
+    rootBox: "w-full",
+    cardBox: "!w-full !max-w-none !bg-transparent !border-0 !shadow-none !rounded-none overflow-visible",
+    card: "!shadow-none !border-0 !bg-transparent !rounded-none !p-0 !gap-6",
+    footer: "!shadow-none !border-0 !bg-transparent !rounded-none !p-0 [&>div:last-child]:opacity-60",
+    header: "!items-start !text-left",
+    headerTitle: "!font-['Playfair_Display',serif] !text-[2rem] !leading-tight !font-semibold !tracking-[-0.02em] !text-[#1f2a1d]",
+    headerSubtitle: "!text-[0.95rem] !text-[#5b6858]",
+    socialButtonsBlockButton:
+      "!h-11 !border !border-[#cfd9ca] !bg-white hover:!bg-[#f4f7f2] hover:!border-[#b3c3ab] !rounded-xl !shadow-[0_1px_2px_rgba(31,51,38,0.06)] transition-colors",
+    socialButtonsBlockButtonText: "!font-medium !text-[#1f2a1d]",
+    dividerLine: "!bg-[#dbe3d6]",
+    dividerText: "!text-[#7a8776] !text-xs !uppercase !tracking-[0.14em]",
+    formFieldLabel: "!font-medium !text-[#2c3a29]",
+    formFieldInput:
+      "!h-11 !border !border-[#cfd9ca] !bg-white !text-[#1f2a1d] placeholder:!text-[#9aa896] !rounded-xl !shadow-[inset_0_1px_2px_rgba(31,51,38,0.04)] hover:!border-[#b3c3ab] focus:!border-[#4a6741] focus:!ring-4 focus:!ring-[#4a6741]/15 transition-shadow",
+    formButtonPrimary:
+      "!h-11 !bg-[#4a6741] hover:!bg-[#3c5535] active:!bg-[#334a2d] !text-white !font-semibold !text-[0.95rem] !rounded-xl !shadow-[0_10px_24px_-8px_rgba(74,103,65,0.55)] transition-colors",
+    footerAction: "!bg-transparent !justify-start",
+    footerActionText: "!text-[#5b6858]",
+    footerActionLink: "!font-semibold !text-[#c2703d] hover:!text-[#a55a2b]",
+    identityPreviewEditButton: "!text-[#c2703d]",
+    formFieldSuccessText: "!text-[#4a6741]",
+    formFieldAction: "!text-[#c2703d] hover:!text-[#a55a2b]",
+    alert: "!bg-[#fbf3ee] !border-[#efd5c4] !rounded-xl",
+    alertText: "!text-[#5a3a26]",
+    otpCodeFieldInput: "!border-[#cfd9ca] focus:!border-[#4a6741]",
     logoBox: "hidden",
     logoImage: "h-10 w-10",
-    socialButtonsBlockButton: "!border-[#d9e3d4] !bg-[#fbfdf9] hover:!bg-[#f1f6ee] !rounded-xl",
-    formButtonPrimary: "!bg-[#718d66] hover:!bg-[#5f7a55] !text-white !rounded-xl !shadow-[0_8px_18px_rgba(95,122,85,0.2)]",
-    formFieldInput: "!border-[#d9e3d4] !bg-[#fbfdf9] !text-[#203020] focus:!border-[#8aa27f] focus:!ring-[#cbdac6]",
-    footerAction: "bg-transparent",
-    dividerLine: "!bg-[#d9e3d4]",
-    alert: "!bg-[#f3f7f1] !border-[#d9e3d4]",
-    otpCodeFieldInput: "!border-[#d9e3d4]",
     formFieldRow: "",
     main: "",
   },
 };
 
-function AuthShell({ children }: { children: React.ReactNode }) {
+const moods = [
+  { label: "Calm", className: "bg-[#dfe9d8] text-[#2f4a2a]" },
+  { label: "Hopeful", className: "bg-[#f6e3d3] text-[#7a4222]" },
+  { label: "Tired", className: "bg-white/10 text-[#e4ecdf]" },
+];
+
+function BrandMark({ tone }: { tone: "light" | "dark" }) {
+  const light = tone === "light";
   return (
-    <div className="relative flex min-h-[100dvh] items-start justify-center overflow-y-auto bg-[#edf2eb] px-4">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-24 -top-28 h-80 w-80 rounded-full bg-[#d5e4cf]/75 blur-3xl" />
-        <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-[#dce8d6]/80 blur-3xl" />
-        <div className="absolute left-1/2 top-1/3 h-64 w-64 -translate-x-1/2 rounded-full bg-white/45 blur-3xl" />
+    <a
+      href={basePath || "/"}
+      className="group inline-flex items-center gap-3"
+      aria-label="ReflectAI home"
+    >
+      <span
+        className={`flex h-10 w-10 items-center justify-center rounded-xl transition-transform duration-200 group-hover:-rotate-6 ${
+          light ? "bg-white/10 ring-1 ring-white/15" : "bg-[#eef3eb] ring-1 ring-[#cfd9ca]"
+        }`}
+      >
+        <img src={`${window.location.origin}${basePath}/favicon.svg`} alt="" className="h-6 w-6" />
+      </span>
+      <span
+        className={`font-display text-2xl font-semibold tracking-[-0.02em] ${
+          light ? "text-[#f5f1e8]" : "text-[#1f2a1d]"
+        }`}
+      >
+        ReflectAI
+      </span>
+    </a>
+  );
+}
+
+function AuthShowcase() {
+  return (
+    <aside className="relative hidden overflow-hidden bg-[#1f3326] text-[#e4ecdf] lg:flex lg:flex-col lg:justify-between lg:p-12 xl:p-16">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-[#4a6741]/50 blur-3xl" />
+        <div className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-[#c2703d]/25 blur-3xl" />
+        <div className="absolute inset-0 opacity-[0.07] [background-image:radial-gradient(#fff_1px,transparent_1px)] [background-size:22px_22px]" />
       </div>
 
-      <main className="relative z-10 flex w-full max-w-[440px] flex-col items-center py-8 sm:py-12">
-        <a
-          href={basePath || "/"}
-          className="group flex flex-col items-center text-center"
-          aria-label="ReflectAI home"
-        >
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#cbdac6] bg-[#f9fcf7] shadow-[0_8px_22px_rgba(67,86,61,0.12)] transition-transform duration-200 group-hover:-translate-y-0.5">
-            <img
-              src={`${window.location.origin}${basePath}/favicon.svg`}
-              alt=""
-              className="h-9 w-9"
-            />
-          </span>
-          <span className="mt-4 font-display text-3xl font-semibold tracking-[-0.03em] text-[#203020]">
-            ReflectAI
-          </span>
-          <span className="mt-1 text-sm text-[#5e6d5b]">
-            Your personal journaling companion
-          </span>
-        </a>
+      <div className="relative">
+        <BrandMark tone="light" />
+      </div>
 
-        <div className="mt-8 w-full">{children}</div>
+      <div className="relative mx-auto w-full max-w-md">
+        <h2 className="font-display text-4xl font-semibold leading-[1.15] tracking-[-0.02em] text-[#f5f1e8] xl:text-[2.75rem]">
+          Write freely.
+          <br />
+          <span className="italic text-[#e9a77a]">Understand yourself</span>
+          <br />
+          a little better.
+        </h2>
+        <p className="mt-4 max-w-sm font-sans text-[0.95rem] leading-relaxed text-[#b9c7b3]">
+          Journal in your own words and get gentle reflections on what you&rsquo;re feeling, day by day.
+        </p>
 
-        <p className="mt-6 text-center text-xs tracking-wide text-[#71806f]">
+        <div className="relative mt-10">
+          <figure className="rotate-[-1.5deg] rounded-2xl bg-[#fffdf8] p-6 text-[#2c3a29] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.5)]">
+            <figcaption className="flex items-center justify-between font-sans text-xs font-medium uppercase tracking-[0.14em] text-[#8a9686]">
+              <span>Tuesday evening</span>
+              <span className="rounded-full bg-[#dfe9d8] px-2.5 py-1 normal-case tracking-normal text-[#2f4a2a]">
+                Calm
+              </span>
+            </figcaption>
+            <blockquote className="mt-3 text-[1.05rem] leading-relaxed">
+              Long day, but I finally went for that walk by the river. Noticed I wasn&rsquo;t
+              replaying the meeting in my head for once&hellip;
+            </blockquote>
+          </figure>
+
+          <div className="relative -mt-4 ml-8 rotate-[1deg] rounded-2xl border border-white/10 bg-[#2b4432]/95 p-5 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.6)] backdrop-blur">
+            <div className="flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-[#e9a77a]">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+              Reflection
+            </div>
+            <p className="mt-2 font-sans text-sm leading-relaxed text-[#dfe7da]">
+              Time outside seems to quiet your thoughts. This is the third entry this month where a
+              walk shifted your mood.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative flex flex-wrap items-center gap-2 font-sans text-xs">
+        <span className="mr-1 text-[#8fa189]">This week:</span>
+        {moods.map((m) => (
+          <span key={m.label} className={`rounded-full px-3 py-1 font-medium ${m.className}`}>
+            {m.label}
+          </span>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function AuthShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid min-h-[100dvh] bg-[#fbf8f1] font-sans lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+      <AuthShowcase />
+
+      <main className="relative flex flex-col px-4 py-8 sm:px-8 lg:px-12">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden lg:hidden">
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#dfe9d8] blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-[#f6e3d3]/70 blur-3xl" />
+        </div>
+
+        <div className="relative lg:hidden">
+          <BrandMark tone="dark" />
+        </div>
+
+        <div className="relative mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center py-10">
+          {children}
+        </div>
+
+        <p className="relative flex items-center justify-center gap-1.5 text-center text-xs text-[#7a8776]">
+          <Lock className="h-3.5 w-3.5" aria-hidden="true" />
           A private space to pause, reflect, and move forward.
         </p>
       </main>
