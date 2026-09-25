@@ -1,12 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
-import {
-  CLERK_PROXY_PATH,
-  clerkProxyMiddleware,
-  getClerkProxyHost,
-} from "./middlewares/clerkProxyMiddleware";
+import { toNodeHandler } from "better-auth/node";
+import { auth, ensureAuthTables } from "./auth";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -17,26 +12,17 @@ const app = express();
 // into the OAuth discovery doc and WWW-Authenticate header as http:// URLs.
 app.set("trust proxy", 1);
 
-// Clerk proxy must be mounted BEFORE body parsers (streams raw bytes)
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
 
+// Better Auth reads the raw request body itself, so it must be mounted
+// BEFORE the body parsers.
+app.all("/api/auth/*", toNodeHandler(auth));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Resolve publishable key from request host for custom-domain support
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -69,6 +55,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  await ensureAuthTables();
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
