@@ -1,13 +1,12 @@
 import { useState } from "react";
+import { todayKey } from "@/lib/dates";
 import NavigationHeader from "@/components/navigation-header";
 import CalendarWidget from "@/components/calendar-widget";
 import JournalEntryForm from "@/components/journal-entry-form";
 import Footer from "@/components/footer";
 
 export default function Journal() {
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(todayKey());
 
   // Auth is handled by ProtectedRoute wrapper in App.tsx
 

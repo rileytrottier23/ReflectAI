@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDateKey, toDateKey, todayKey } from "@/lib/dates";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ interface CalendarWidgetProps {
 
 export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarWidgetProps) {
   const [currentMonth, setCurrentMonth] = useState(() => {
-    const selected = new Date(selectedDate);
+    const selected = parseDateKey(selectedDate);
     return new Date(selected.getFullYear(), selected.getMonth(), 1);
   });
 
@@ -53,7 +54,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
       days.push({
         date: prevMonthDate.getDate(),
         isCurrentMonth: false,
-        fullDate: prevMonthDate.toISOString().split('T')[0],
+        fullDate: toDateKey(prevMonthDate),
       });
     }
 
@@ -63,7 +64,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
       days.push({
         date: day,
         isCurrentMonth: true,
-        fullDate: date.toISOString().split('T')[0],
+        fullDate: toDateKey(date),
       });
     }
 
@@ -74,7 +75,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
       days.push({
         date: day,
         isCurrentMonth: false,
-        fullDate: nextMonthDate.toISOString().split('T')[0],
+        fullDate: toDateKey(nextMonthDate),
       });
     }
 
@@ -82,6 +83,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
   };
 
   const days = getDaysInMonth();
+  const today = todayKey();
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
@@ -129,7 +131,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
           {days.map((day, index) => {
             const isSelected = day.fullDate === selectedDate;
             const hasEntry = datesWithEntries.has(day.fullDate);
-            const isToday = day.fullDate === new Date().toISOString().split('T')[0];
+            const isToday = day.fullDate === today;
             
             return (
               <Button
