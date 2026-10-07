@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { parseDateKey } from "@/lib/dates";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -180,7 +181,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
     form.setValue("happinessScore", value[0]);
   };
 
-  const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
+  const formattedDate = parseDateKey(selectedDate).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
