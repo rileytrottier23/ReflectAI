@@ -2,7 +2,7 @@
 
 An AI journaling app. You write one entry a day and rate how happy you felt from 1 to 10. At the end of each month, and each year, Claude writes you a report on the patterns in what you wrote, with specific observations drawn from your own entries rather than generic wellness advice.
 
-Live at [reflectai.net](https://reflectai.net). I wrote about building it here: [How I built ReflectAI, an AI journaling app](https://personal-site-production-7acd.up.railway.app/posts/building-reflectai/).
+Live at [reflectai.net](https://reflectai.net). I wrote about building it here: [How I built ReflectAI, an AI journaling app](https://rileytrottier.com/posts/building-reflectai/).
 
 ## Features
 
