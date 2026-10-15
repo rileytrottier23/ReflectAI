@@ -1,7 +1,36 @@
+import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const CONTACT_EMAIL = "riley.a.trottier@gmail.com";
+const EFFECTIVE_DATE = "October 15, 2026";
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="mb-8">
+      <h2 className="text-xl font-semibold text-black mb-4">{title}</h2>
+      <div className="space-y-4 text-gray-700">{children}</div>
+    </section>
+  );
+}
+
+function Bullets({ items }: { items: ReactNode[] }) {
+  return (
+    <ul className="list-disc pl-6 space-y-2">
+      {items.map((item, i) => (
+        <li key={i}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+const mail = (
+  <a href={`mailto:${CONTACT_EMAIL}`} className="text-sage-700 underline">
+    {CONTACT_EMAIL}
+  </a>
+);
 
 export default function PrivacyPolicy() {
   return (
@@ -21,109 +50,136 @@ export default function PrivacyPolicy() {
             <CardTitle className="text-3xl font-display font-bold text-black text-center">
               Privacy Policy
             </CardTitle>
+            <p className="text-center text-sm text-gray-500">Effective {EFFECTIVE_DATE}</p>
           </CardHeader>
           <CardContent className="prose prose-gray max-w-none">
-            <p className="text-gray-700 mb-6">
-              This privacy policy applies to the Reflect AI app (hereby referred to as "Application") for mobile devices that was created by Galileo Professional Services (hereby referred to as "Service Provider") as a Free service. This service is intended for use "AS IS".
-            </p>
+            <Section title="The short version">
+              <Bullets
+                items={[
+                  "Your journal is yours. It is never sold, never used for advertising, and never shared with anyone except the services listed below that ReflectAI needs to run.",
+                  "Your entries are sent to an AI provider (Anthropic) only when you ask for a monthly or annual report.",
+                  "ReflectAI has no ads, no analytics, and no tracking cookies.",
+                  <>You can delete any entry at any time, and you can ask for your whole account to be deleted by emailing {mail}.</>,
+                ]}
+              />
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Information Collection and Use</h2>
-              <p className="text-gray-700 mb-4">
-                The Application collects information when you download and use it. This information may include information such as:
+            <Section title="Who runs ReflectAI">
+              <p>
+                ReflectAI (reflectai.net) is a free web app built and run by Riley Trottier, an individual
+                based in Victoria, British Columbia, Canada. In this policy, "we" means Riley. Questions about
+                your privacy go to {mail}.
               </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Your device's Internet Protocol address (e.g. IP address)</li>
-                <li>The pages of the Application that you visit, the time and date of your visit, the time spent on those pages</li>
-                <li>The time spent on the Application</li>
-                <li>The operating system you use on your mobile device</li>
-              </ul>
-              <p className="text-gray-700 mb-4">
-                The Application does not gather precise information about the location of your mobile device.
-              </p>
-              <p className="text-gray-700 mb-4">
-                The Service Provider may use the information you provided to contact you from time to time to provide you with important information, required notices and marketing promotions.
-              </p>
-              <p className="text-gray-700">
-                For a better experience, while using the Application, the Service Provider may require you to provide us with certain personally identifiable information, including but not limited to Email. The information that the Service Provider request will be retained by them and used as described in this privacy policy.
-              </p>
-            </section>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Third Party Access</h2>
-              <p className="text-gray-700 mb-4">
-                Only aggregated, anonymized data is periodically transmitted to external services to aid the Service Provider in improving the Application and their service. The Service Provider may share your information with third parties in the ways that are described in this privacy statement.
-              </p>
-              <p className="text-gray-700 mb-4">
-                Please note that the Application utilizes third-party services that have their own Privacy Policy about handling data. Below are the links to the Privacy Policy of the third-party service providers used by the Application:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 mb-4">
-                <li>Google Play Services</li>
-              </ul>
-              <p className="text-gray-700 mb-2">
-                The Service Provider may disclose User Provided and Automatically Collected Information:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700">
-                <li>as required by law, such as to comply with a subpoena, or similar legal process;</li>
-                <li>when they believe in good faith that disclosure is necessary to protect their rights, protect your safety or the safety of others, investigate fraud, or respond to a government request;</li>
-                <li>with their trusted services providers who work on their behalf, do not have an independent use of the information we disclose to them, and have agreed to adhere to the rules set forth in this privacy statement.</li>
-              </ul>
-            </section>
+            <Section title="What we collect">
+              <Bullets
+                items={[
+                  <><strong>Account details:</strong> your name and email address. If you sign up with a password, it is stored only as a secure hash. If you sign in with Google, we receive your name, email address and profile picture from Google.</>,
+                  <><strong>Your journal:</strong> the date, text and 1–10 happiness score of each entry you write.</>,
+                  <><strong>Your reports:</strong> the monthly and annual reports generated from your entries, so you can read them again later.</>,
+                  <><strong>Sign-in sessions:</strong> to keep you signed in, we store a session record with the IP address and browser type (user agent) it was created from. One essential cookie holds your session; there are no other cookies.</>,
+                  <><strong>Basic server logs:</strong> the time, page or API address and result of each request, kept by our hosting provider to run and debug the service. These logs do not contain your journal text.</>,
+                ]}
+              />
+              <p>We do not collect your precise location, contacts, or anything from your device beyond what your browser sends with each request.</p>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Opt-Out Rights</h2>
-              <p className="text-gray-700">
-                You can stop all collection of information by the Application easily by uninstalling it. You may use the standard uninstall processes as may be available as part of your mobile device or via the mobile application marketplace or network.
-              </p>
-            </section>
+            <Section title="How we use it">
+              <Bullets
+                items={[
+                  "To run your account and show you your journal.",
+                  "To generate the AI reports you ask for.",
+                  "To send account emails: confirming your address and resetting your password. We do not send marketing email.",
+                  "To keep the service secure and fix problems.",
+                ]}
+              />
+              <p>We do not read your journal entries. As the operator, Riley has technical access to the database and would only look at your data if you ask for help with your account, or if the law requires it.</p>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Data Retention Policy</h2>
-              <p className="text-gray-700">
-                The Service Provider will retain User Provided data for as long as you use the Application and for a reasonable time thereafter. If you'd like them to delete User Provided Data that you have provided via the Application, please contact them at riley.a.trottier@gmail.com and they will respond in a reasonable time.
+            <Section title="Services that handle your data">
+              <p>ReflectAI relies on these providers. Each one processes data only to provide its service to ReflectAI:</p>
+              <Bullets
+                items={[
+                  <><strong>Railway</strong> hosts the app and its database in the United States (Virginia). All of the data above is stored there. <a className="text-sage-700 underline" href="https://railway.com/legal/privacy" target="_blank" rel="noreferrer">Railway privacy policy</a></>,
+                  <><strong>Anthropic</strong> provides the AI model (Claude) that writes your reports. When you request a report, the entries for that month or year are sent to Anthropic's API to generate it. Anthropic's commercial terms do not allow it to train its models on this data by default. <a className="text-sage-700 underline" href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noreferrer">Anthropic privacy policy</a></>,
+                  <><strong>Resend</strong> delivers account emails, so it receives your email address and the email's contents. <a className="text-sage-700 underline" href="https://resend.com/legal/privacy-policy" target="_blank" rel="noreferrer">Resend privacy policy</a></>,
+                  <><strong>Google</strong>, only if you choose "Continue with Google", confirms who you are. <a className="text-sage-700 underline" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google privacy policy</a></>,
+                ]}
+              />
+              <p>
+                Because these providers are in the United States, your information is stored and processed
+                outside Canada and may be accessible to US authorities under US law.
               </p>
-            </section>
+              <p>
+                We will also disclose information if the law requires it, for example in response to a valid
+                court order. We do not sell or rent your information to anyone.
+              </p>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Children</h2>
-              <p className="text-gray-700 mb-4">
-                The Service Provider does not use the Application to knowingly solicit data from or market to children under the age of 13.
+            <Section title="AI reports are not professional advice">
+              <p>
+                ReflectAI's reports are written by an AI and can be wrong. They are not medical, psychological
+                or counselling advice. If you are struggling, please reach out to a health professional or a
+                local crisis line.
               </p>
-              <p className="text-gray-700">
-                The Application does not address anyone under the age of 13. The Service Provider does not knowingly collect personally identifiable information from children under 13 years of age. In the case the Service Provider discover that a child under 13 has provided personal information, the Service Provider will immediately delete this from their servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact the Service Provider so that they will be able to do necessary actions.
-              </p>
-            </section>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Security</h2>
-              <p className="text-gray-700">
-                The Service Provider is concerned about safeguarding the confidentiality of your information. The Service Provider provides physical, electronic, and procedural safeguards to protect information the Service Provider processes and maintains.
-              </p>
-            </section>
+            <Section title="How long we keep it">
+              <Bullets
+                items={[
+                  "Journal entries and reports are kept until you delete them or ask us to delete your account.",
+                  "Deleting an entry in the app removes it from the database right away.",
+                  <>To delete your whole account and everything in it, email {mail} from the address on your account. We will delete it within 30 days and confirm when it is done.</>,
+                  "Sign-in sessions expire automatically. Hosting logs are kept by Railway for a limited period and then deleted.",
+                ]}
+              />
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Changes</h2>
-              <p className="text-gray-700 mb-4">
-                This Privacy Policy may be updated from time to time for any reason. The Service Provider will notify you of any changes to the Privacy Policy by updating this page with the new Privacy Policy. You are advised to consult this Privacy Policy regularly for any changes, as continued use is deemed approval of all changes.
+            <Section title="Your rights">
+              <p>
+                You can ask to see the personal information we hold about you, correct it, get a copy of your
+                entries, or have it deleted. Email {mail} and we will respond within 30 days. ReflectAI follows
+                British Columbia's Personal Information Protection Act. If you are not satisfied with our
+                response, you can contact the{" "}
+                <a className="text-sage-700 underline" href="https://www.oipc.bc.ca" target="_blank" rel="noreferrer">
+                  Office of the Information and Privacy Commissioner for British Columbia
+                </a>.
               </p>
-              <p className="text-gray-700">
-                This privacy policy is effective as of 2025-04-11
-              </p>
-            </section>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Your Consent</h2>
-              <p className="text-gray-700">
-                By using the Application, you are consenting to the processing of your information as set forth in this Privacy Policy now and as amended by us.
+            <Section title="How we protect it">
+              <Bullets
+                items={[
+                  "All traffic to reflectai.net is encrypted with HTTPS.",
+                  "Passwords are stored as hashes, never in plain text, and email addresses must be confirmed before an account can be used.",
+                  "Every request for journal data is checked against the signed-in account, so you can only ever see your own entries.",
+                ]}
+              />
+              <p>
+                Your entries are not end-to-end encrypted, which is what lets the AI read them when you ask
+                for a report. No online service is perfectly secure. If a breach ever affects your information,
+                we will tell you as the law requires.
               </p>
-            </section>
+            </Section>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-semibold text-black mb-4">Contact Us</h2>
-              <p className="text-gray-700">
-                If you have any questions regarding privacy while using the Application, or have questions about the practices, please contact the Service Provider via email at riley.a.trottier@gmail.com.
+            <Section title="Children">
+              <p>
+                ReflectAI is not intended for anyone under 18, and we do not knowingly collect information from
+                them. If you believe a minor has created an account, contact {mail} and we will delete it.
               </p>
-            </section>
+            </Section>
+
+            <Section title="Changes to this policy">
+              <p>
+                If we change this policy, we will update it here and change the effective date at the top.
+                For any significant change, we will also email account holders before it takes effect.
+              </p>
+            </Section>
+
+            <Section title="Contact">
+              <p>Riley Trottier, Victoria, British Columbia, Canada · {mail}</p>
+            </Section>
           </CardContent>
         </Card>
       </div>
