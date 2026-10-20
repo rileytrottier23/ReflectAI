@@ -1,20 +1,54 @@
 import crypto from "crypto";
 import { Router } from "express";
+import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  consumeRefreshToken,
+  issueTokenPair,
+  safeEqual,
+} from "./mcp-tokens";
 
 // Short-lived authorization codes (5 min TTL, in-memory is fine for single-user)
 const authCodes = new Map<string, {
   expiresAt: number;
-  codeChallenge?: string;
-  codeChallengeMethod?: string;
+  codeChallenge: string;
   redirectUri: string;
 }>();
 
-function verifyPkce(verifier: string, challenge: string, method: string): boolean {
-  if (method === "S256") {
-    const hash = crypto.createHash("sha256").update(verifier).digest("base64url");
-    return hash === challenge;
+// Only Claude's OAuth callbacks may receive authorization codes. Loopback
+// addresses are allowed for local clients such as Claude Code. Extra exact
+// URIs can be added with OAUTH_REDIRECT_URIS (comma-separated).
+const ALLOWED_REDIRECT_HOSTS = new Set(["claude.ai", "claude.com"]);
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+export function isAllowedRedirectUri(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const extra = (process.env.OAUTH_REDIRECT_URIS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (extra.includes(value)) return true;
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
   }
-  return verifier === challenge; // plain
+  if (url.username || url.password) return false;
+  if (url.protocol === "https:" && ALLOWED_REDIRECT_HOSTS.has(url.hostname)) return true;
+  if (url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname)) return true;
+  return false;
+}
+
+// Only S256 is accepted; "plain" PKCE offers no protection if the code leaks.
+function verifyPkce(verifier: string, challenge: string): boolean {
+  const hash = crypto.createHash("sha256").update(verifier).digest("base64url");
+  return safeEqual(hash, challenge);
+}
+
+function clientIdMatches(clientId: unknown): boolean {
+  const expected = process.env.OAUTH_CLIENT_ID;
+  return Boolean(expected) && typeof clientId === "string" && safeEqual(clientId, expected);
 }
 
 function authorizeHtml(params: {
@@ -134,8 +168,9 @@ export function createOAuthRouter(): Router {
       authorization_endpoint: `${base}/oauth/authorize`,
       token_endpoint: `${base}/oauth/token`,
       response_types_supported: ["code"],
-      grant_types_supported: ["authorization_code"],
-      code_challenge_methods_supported: ["S256", "plain"],
+      grant_types_supported: ["authorization_code", "refresh_token"],
+      code_challenge_methods_supported: ["S256"],
+      token_endpoint_auth_methods_supported: ["client_secret_post"],
     });
   });
 
@@ -145,13 +180,19 @@ export function createOAuthRouter(): Router {
       client_id,
       redirect_uri,
       state,
-      response_type,
       code_challenge,
       code_challenge_method,
     } = req.query as Record<string, string>;
 
-    if (!redirect_uri) {
-      return res.status(400).send("Missing redirect_uri");
+    // Never redirect to an unvetted URI: show an error page instead.
+    if (!isAllowedRedirectUri(redirect_uri)) {
+      return res.status(400).send("Invalid redirect_uri");
+    }
+    if (!clientIdMatches(client_id)) {
+      return res.status(400).send("Unknown client_id");
+    }
+    if (!code_challenge || code_challenge_method !== "S256") {
+      return res.status(400).send("PKCE with S256 is required");
     }
 
     res.send(authorizeHtml({
@@ -167,12 +208,20 @@ export function createOAuthRouter(): Router {
   router.post("/oauth/authorize", (req, res) => {
     const { redirect_uri, state, code_challenge, code_challenge_method, action } = req.body;
 
-    if (!redirect_uri) return res.status(400).send("Missing redirect_uri");
+    if (!isAllowedRedirectUri(redirect_uri)) {
+      return res.status(400).send("Invalid redirect_uri");
+    }
 
     const redirectUrl = new URL(redirect_uri);
 
-    if (action === "deny") {
+    if (action !== "allow") {
       redirectUrl.searchParams.set("error", "access_denied");
+      if (state) redirectUrl.searchParams.set("state", state);
+      return res.redirect(redirectUrl.toString());
+    }
+
+    if (!code_challenge || code_challenge_method !== "S256") {
+      redirectUrl.searchParams.set("error", "invalid_request");
       if (state) redirectUrl.searchParams.set("state", state);
       return res.redirect(redirectUrl.toString());
     }
@@ -180,8 +229,7 @@ export function createOAuthRouter(): Router {
     const code = crypto.randomBytes(32).toString("hex");
     authCodes.set(code, {
       expiresAt: Date.now() + 5 * 60 * 1000,
-      codeChallenge: code_challenge || undefined,
-      codeChallengeMethod: code_challenge_method || "plain",
+      codeChallenge: code_challenge,
       redirectUri: redirect_uri,
     });
 
@@ -191,7 +239,7 @@ export function createOAuthRouter(): Router {
   });
 
   // Token exchange endpoint
-  router.post("/oauth/token", (req, res) => {
+  router.post("/oauth/token", async (req, res) => {
     const {
       grant_type,
       code,
@@ -199,48 +247,52 @@ export function createOAuthRouter(): Router {
       client_secret,
       redirect_uri,
       code_verifier,
+      refresh_token,
     } = req.body;
 
-    // Validate client identity
-    const expectedClientId = process.env.OAUTH_CLIENT_ID;
+    // Validate client identity. MCP_TOKEN is now only the client secret;
+    // it is never handed out as an access token.
     const expectedSecret = process.env.MCP_TOKEN;
-
-    if (!expectedClientId || !expectedSecret) {
+    if (!process.env.OAUTH_CLIENT_ID || !expectedSecret) {
       return res.status(503).json({ error: "server_error", error_description: "OAuth not configured" });
     }
-    if (client_id !== expectedClientId) {
-      return res.status(401).json({ error: "invalid_client", error_description: "Unknown client_id" });
-    }
-    if (client_secret !== expectedSecret) {
-      return res.status(401).json({ error: "invalid_client", error_description: "Invalid client_secret" });
-    }
-    if (grant_type !== "authorization_code") {
-      return res.status(400).json({ error: "unsupported_grant_type" });
+    if (!clientIdMatches(client_id) || !safeEqual(client_secret, expectedSecret)) {
+      return res.status(401).json({ error: "invalid_client" });
     }
 
-    const stored = authCodes.get(code);
-    if (!stored || Date.now() > stored.expiresAt) {
-      authCodes.delete(code);
-      return res.status(400).json({ error: "invalid_grant", error_description: "Authorization code expired or invalid" });
-    }
-
-    // Validate PKCE if the authorization request included a challenge
-    if (stored.codeChallenge) {
-      if (!code_verifier) {
-        return res.status(400).json({ error: "invalid_grant", error_description: "Missing code_verifier" });
+    try {
+      if (grant_type === "authorization_code") {
+        const stored = typeof code === "string" ? authCodes.get(code) : undefined;
+        if (typeof code === "string") authCodes.delete(code); // single use
+        if (!stored || Date.now() > stored.expiresAt) {
+          return res.status(400).json({ error: "invalid_grant", error_description: "Authorization code expired or invalid" });
+        }
+        if (redirect_uri !== stored.redirectUri) {
+          return res.status(400).json({ error: "invalid_grant", error_description: "redirect_uri mismatch" });
+        }
+        if (typeof code_verifier !== "string" || !verifyPkce(code_verifier, stored.codeChallenge)) {
+          return res.status(400).json({ error: "invalid_grant", error_description: "PKCE verification failed" });
+        }
+      } else if (grant_type === "refresh_token") {
+        if (typeof refresh_token !== "string" || !(await consumeRefreshToken(refresh_token))) {
+          return res.status(400).json({ error: "invalid_grant", error_description: "Refresh token expired or invalid" });
+        }
+      } else {
+        return res.status(400).json({ error: "unsupported_grant_type" });
       }
-      if (!verifyPkce(code_verifier, stored.codeChallenge, stored.codeChallengeMethod || "plain")) {
-        return res.status(400).json({ error: "invalid_grant", error_description: "PKCE verification failed" });
-      }
+
+      const { accessToken, refreshToken } = await issueTokenPair();
+      res.set("Cache-Control", "no-store");
+      res.json({
+        access_token: accessToken,
+        token_type: "bearer",
+        expires_in: ACCESS_TOKEN_TTL_SECONDS,
+        refresh_token: refreshToken,
+      });
+    } catch (err) {
+      console.error("[oauth] token error", err);
+      res.status(500).json({ error: "server_error" });
     }
-
-    authCodes.delete(code);
-
-    res.json({
-      access_token: expectedSecret,
-      token_type: "bearer",
-      expires_in: 31536000, // 1 year
-    });
   });
 
   return router;

@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth, ensureAuthTables } from "./auth";
+import { ensureMcpTokenTable } from "./mcp-tokens";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -12,8 +13,31 @@ const app = express();
 // into the OAuth discovery doc and WWW-Authenticate header as http:// URLs.
 app.set("trust proxy", 1);
 
+// The Content Security Policy only applies in production: Vite's dev server
+// injects inline scripts and a websocket that a strict policy would block.
+const isProduction = process.env.NODE_ENV === "production";
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: isProduction
+    ? {
+        useDefaults: true,
+        directives: {
+          "default-src": ["'self'"],
+          "script-src": ["'self'"],
+          // UI components set inline style attributes; Google Fonts CSS is external.
+          "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+          // Google profile pictures come from googleusercontent.com.
+          "img-src": ["'self'", "data:", "https:"],
+          "connect-src": ["'self'"],
+          "frame-ancestors": ["'none'"],
+          "object-src": ["'none'"],
+          "base-uri": ["'self'"],
+          // The OAuth consent form redirects to Claude after submit, and
+          // form-action also governs redirects, so leave it unrestricted.
+          "form-action": null,
+        },
+      }
+    : false,
   crossOriginEmbedderPolicy: false,
 }));
 
@@ -39,14 +63,22 @@ app.use((req, res, next) => {
 
 (async () => {
   await ensureAuthTables();
+  await ensureMcpTokenTable();
   const server = await registerRoutes(app);
 
+  // Client errors (4xx, e.g. malformed JSON) keep their message; anything
+  // else is logged here and the user gets a generic message, so internal
+  // details such as database errors never reach the browser.
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
+    if (status >= 500) {
+      console.error(err);
+    }
+    if (res.headersSent) return;
+    const message = status < 500 && err.expose !== false && err.message
+      ? err.message
+      : "Something went wrong. Please try again";
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after

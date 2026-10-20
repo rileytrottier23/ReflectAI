@@ -9,6 +9,7 @@ import rateLimit from "express-rate-limit";
 import { handleMcpRequest } from "./mcp";
 import { createOAuthRouter } from "./oauth";
 import { googleEnabled } from "./auth";
+import { isValidAccessToken } from "./mcp-tokens";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -200,33 +201,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ── MCP endpoint (/mcp) ────────────────────────────────────────────────────
-  // Auth: Bearer token in Authorization header (MCP_TOKEN secret)
+  // Auth: Bearer access token issued by /oauth/token (random, expires hourly)
   // User identity: looks up the local user row by MCP_USER_EMAIL secret
   const mcpAuthMiddleware = async (req: any, res: any, next: any) => {
-    const token = process.env.MCP_TOKEN;
-    if (!token) {
-      return res.status(503).json({ error: "MCP_TOKEN secret not configured" });
+    try {
+      const header = req.headers["authorization"];
+      const token = typeof header === "string" && header.startsWith("Bearer ")
+        ? header.slice("Bearer ".length).trim()
+        : "";
+      if (!token || !(await isValidAccessToken(token))) {
+        const base = `${req.protocol}://${req.headers.host}`;
+        res.setHeader(
+          "WWW-Authenticate",
+          `Bearer realm="ReflectAI Journal", error="invalid_token", resource_metadata="${base}/.well-known/oauth-authorization-server"`
+        );
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      // Resolve the user this MCP server belongs to
+      const email = process.env.MCP_USER_EMAIL;
+      if (!email) {
+        return res.status(503).json({ error: "MCP server not configured" });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ error: "No account found for the MCP user. Sign in to the app first." });
+      }
+      req.mcpUserId = user.id.toString();
+      next();
+    } catch (err) {
+      console.error("[mcp] auth error", err);
+      res.status(500).json({ error: "Internal error" });
     }
-    const auth = req.headers["authorization"];
-    if (!auth || auth !== `Bearer ${token}`) {
-      const base = `${req.protocol}://${req.headers.host}`;
-      res.setHeader(
-        "WWW-Authenticate",
-        `Bearer realm="ReflectAI Journal", resource_metadata="${base}/.well-known/oauth-authorization-server"`
-      );
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    // Resolve the user this MCP server belongs to
-    const email = process.env.MCP_USER_EMAIL;
-    if (!email) {
-      return res.status(503).json({ error: "MCP_USER_EMAIL secret not configured" });
-    }
-    let user = await storage.getUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ error: `No account found for MCP_USER_EMAIL (${email}). Sign in to the app first.` });
-    }
-    req.mcpUserId = user.id.toString();
-    next();
   };
 
   app.post("/mcp", mcpAuthMiddleware, async (req, res) => {
