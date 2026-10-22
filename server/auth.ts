@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { sql } from "drizzle-orm";
 import { db } from "./db";
@@ -9,6 +10,15 @@ const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 export const googleEnabled = Boolean(googleClientId && googleClientSecret);
+
+// Emergency switch: set SIGNUPS_ENABLED=false on Railway to stop new accounts
+// (email and Google). Existing users can still sign in.
+export function signupsEnabled(): boolean {
+  return process.env.SIGNUPS_ENABLED?.trim().toLowerCase() !== "false";
+}
+
+export const SIGNUPS_PAUSED_MESSAGE =
+  "Sign-ups are paused right now. Please check back soon.";
 
 export const auth = betterAuth({
   // BETTER_AUTH_URL (e.g. https://reflectai.net) and BETTER_AUTH_SECRET are
@@ -57,6 +67,18 @@ export const auth = betterAuth({
         },
       }
     : {},
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          if (!signupsEnabled()) {
+            throw new APIError("FORBIDDEN", { message: SIGNUPS_PAUSED_MESSAGE });
+          }
+          return { data: user };
+        },
+      },
+    },
+  },
   account: {
     accountLinking: {
       enabled: true,
