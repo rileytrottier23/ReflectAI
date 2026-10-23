@@ -3,8 +3,12 @@
  *
  * This is a single-user server — there is no user database. The owner
  * authorizes a client (e.g. Claude) by clicking "Allow" on the consent page.
- * The issued access_token equals MCP_TOKEN, so the existing bearer-token
- * check on /mcp works automatically.
+ * Access tokens are random and short-lived (see tokens.ts); MCP_TOKEN is only
+ * the client secret.
+ *
+ * NOT FOR PRODUCTION AS-IS: the consent page has no login, so the client
+ * secret is the only thing protecting the data. In a real app, require the
+ * owner's signed-in session before showing or accepting the consent form.
  *
  * Designed to satisfy claude.ai's MCP connector OAuth requirement without
  * a full identity provider.
@@ -12,27 +16,47 @@
 
 import crypto from "crypto";
 import { Router } from "express";
+import { ACCESS_TOKEN_TTL_SECONDS, issueAccessToken, safeEqual } from "./tokens.js";
 
 // Short-lived authorization codes — 5-minute TTL, in-memory (fine for single-user)
 const authCodes = new Map<string, {
   expiresAt: number;
-  codeChallenge?: string;
-  codeChallengeMethod?: string;
+  codeChallenge: string;
   redirectUri: string;
 }>();
 
-function verifyPkce(verifier: string, challenge: string, method: string): boolean {
-  if (method === "S256") {
-    const hash = crypto.createHash("sha256").update(verifier).digest("base64url");
-    return hash === challenge;
+// Only Claude's OAuth callbacks (and loopback, for local clients) may
+// receive authorization codes. Extra exact URIs: OAUTH_REDIRECT_URIS.
+const ALLOWED_REDIRECT_HOSTS = new Set(["claude.ai", "claude.com"]);
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+function isAllowedRedirectUri(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const extra = (process.env.OAUTH_REDIRECT_URIS || "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (extra.includes(value)) return true;
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
   }
-  return verifier === challenge; // "plain" method
+  if (url.username || url.password) return false;
+  if (url.protocol === "https:" && ALLOWED_REDIRECT_HOSTS.has(url.hostname)) return true;
+  if (url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname)) return true;
+  return false;
+}
+
+// Only S256 is accepted; "plain" PKCE offers no protection if the code leaks.
+function verifyPkce(verifier: string, challenge: string): boolean {
+  const hash = crypto.createHash("sha256").update(verifier).digest("base64url");
+  return safeEqual(hash, challenge);
 }
 
 function escHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
@@ -119,7 +143,7 @@ function authorizeHtml(params: {
         <button type="submit" name="action" value="allow" class="allow">Allow</button>
       </div>
     </form>
-    <p class="note">Only you can see this page.</p>
+    <p class="note">Sample only: this page has no login. See the README before deploying.</p>
   </div>
 </body>
 </html>`;
@@ -137,7 +161,7 @@ export function createOAuthRouter(): Router {
       token_endpoint:                    `${base}/oauth/token`,
       response_types_supported:          ["code"],
       grant_types_supported:             ["authorization_code"],
-      code_challenge_methods_supported:  ["S256", "plain"],
+      code_challenge_methods_supported:  ["S256"],
     });
   });
 
@@ -146,7 +170,10 @@ export function createOAuthRouter(): Router {
     const { client_id, redirect_uri, state, code_challenge, code_challenge_method } =
       req.query as Record<string, string>;
 
-    if (!redirect_uri) return res.status(400).send("Missing redirect_uri");
+    if (!isAllowedRedirectUri(redirect_uri)) return res.status(400).send("Invalid redirect_uri");
+    if (!code_challenge || code_challenge_method !== "S256") {
+      return res.status(400).send("PKCE with S256 is required");
+    }
 
     res.send(authorizeHtml({
       clientId:            client_id,
@@ -160,7 +187,7 @@ export function createOAuthRouter(): Router {
   // Process consent form (Allow / Deny)
   router.post("/oauth/authorize", (req, res) => {
     const { redirect_uri, state, code_challenge, code_challenge_method, action } = req.body;
-    if (!redirect_uri) return res.status(400).send("Missing redirect_uri");
+    if (!isAllowedRedirectUri(redirect_uri)) return res.status(400).send("Invalid redirect_uri");
 
     const redirectUrl = new URL(redirect_uri);
 
@@ -170,12 +197,17 @@ export function createOAuthRouter(): Router {
       return res.redirect(redirectUrl.toString());
     }
 
+    if (!code_challenge || code_challenge_method !== "S256") {
+      redirectUrl.searchParams.set("error", "invalid_request");
+      if (state) redirectUrl.searchParams.set("state", state);
+      return res.redirect(redirectUrl.toString());
+    }
+
     const code = crypto.randomBytes(32).toString("hex");
     authCodes.set(code, {
-      expiresAt:          Date.now() + 5 * 60 * 1000,
-      codeChallenge:      code_challenge || undefined,
-      codeChallengeMethod: code_challenge_method || "plain",
-      redirectUri:        redirect_uri,
+      expiresAt:     Date.now() + 5 * 60 * 1000,
+      codeChallenge: code_challenge,
+      redirectUri:   redirect_uri,
     });
 
     redirectUrl.searchParams.set("code", code);
@@ -185,7 +217,7 @@ export function createOAuthRouter(): Router {
 
   // Token exchange
   router.post("/oauth/token", (req, res) => {
-    const { grant_type, code, client_id, client_secret, code_verifier } = req.body;
+    const { grant_type, code, client_id, client_secret, code_verifier, redirect_uri } = req.body;
 
     const expectedClientId = process.env.OAUTH_CLIENT_ID;
     const expectedSecret   = process.env.MCP_TOKEN;
@@ -193,38 +225,33 @@ export function createOAuthRouter(): Router {
     if (!expectedClientId || !expectedSecret) {
       return res.status(503).json({ error: "server_error", error_description: "OAuth env vars not set" });
     }
-    if (client_id     !== expectedClientId) {
+    if (!safeEqual(client_id, expectedClientId)) {
       return res.status(401).json({ error: "invalid_client", error_description: "Unknown client_id" });
     }
-    if (client_secret !== expectedSecret) {
+    if (!safeEqual(client_secret, expectedSecret)) {
       return res.status(401).json({ error: "invalid_client", error_description: "Invalid client_secret" });
     }
     if (grant_type !== "authorization_code") {
       return res.status(400).json({ error: "unsupported_grant_type" });
     }
 
-    const stored = authCodes.get(code);
+    const stored = typeof code === "string" ? authCodes.get(code) : undefined;
+    if (typeof code === "string") authCodes.delete(code); // single use
     if (!stored || Date.now() > stored.expiresAt) {
-      authCodes.delete(code);
       return res.status(400).json({ error: "invalid_grant", error_description: "Code expired or invalid" });
     }
-
-    if (stored.codeChallenge) {
-      if (!code_verifier) {
-        return res.status(400).json({ error: "invalid_grant", error_description: "Missing code_verifier" });
-      }
-      if (!verifyPkce(code_verifier, stored.codeChallenge, stored.codeChallengeMethod || "plain")) {
-        return res.status(400).json({ error: "invalid_grant", error_description: "PKCE verification failed" });
-      }
+    if (redirect_uri !== stored.redirectUri) {
+      return res.status(400).json({ error: "invalid_grant", error_description: "redirect_uri mismatch" });
+    }
+    if (typeof code_verifier !== "string" || !verifyPkce(code_verifier, stored.codeChallenge)) {
+      return res.status(400).json({ error: "invalid_grant", error_description: "PKCE verification failed" });
     }
 
-    authCodes.delete(code);
-
-    // The access token IS the MCP_TOKEN secret — no separate token store needed.
+    res.set("Cache-Control", "no-store");
     res.json({
-      access_token: expectedSecret,
+      access_token: issueAccessToken(),
       token_type:   "bearer",
-      expires_in:   31_536_000, // 1 year
+      expires_in:   ACCESS_TOKEN_TTL_SECONDS,
     });
   });
 

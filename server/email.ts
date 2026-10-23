@@ -1,7 +1,8 @@
 /**
  * Minimal transactional email via Resend's HTTP API.
  * Requires RESEND_API_KEY and EMAIL_FROM (e.g. "ReflectAI <hello@reflectai.net>").
- * Without them, the email is logged instead of sent so local dev still works.
+ * Without them, production refuses to send (so sign-in links never end up in
+ * logs); in local dev the email is logged instead so sign-in still works.
  */
 export async function sendEmail({
   to,
@@ -16,6 +17,10 @@ export async function sendEmail({
   const from = process.env.EMAIL_FROM;
 
   if (!apiKey || !from) {
+    if (process.env.NODE_ENV === "production") {
+      console.error(`[email] RESEND_API_KEY/EMAIL_FROM not set; could not send "${subject}"`);
+      throw new Error("Email is not configured");
+    }
     console.warn(`[email] RESEND_API_KEY/EMAIL_FROM not set; not sending "${subject}" to ${to}:\n${text}`);
     return;
   }

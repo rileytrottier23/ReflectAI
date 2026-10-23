@@ -13,7 +13,7 @@ The journaling app this was extracted from stores daily entries with a happiness
 The interesting design challenges this solves:
 
 - **One owner, one agent.** No multi-tenancy required, but the auth model still uses proper OAuth 2.0 so it works with Claude's connector UI without any custom SDK.
-- **Bearer token pinned to OAuth secret.** The issued `access_token` is the same value as the bearer token the `/mcp` route checks, so the OAuth consent flow and the API auth layer are a single secret — no separate token store.
+- **Short-lived access tokens.** The OAuth flow issues random access tokens that expire after an hour. `MCP_TOKEN` is only the client secret and is never handed out as a token.
 - **Stateless transport.** Each HTTP request creates a fresh MCP session. No WebSocket, no persistent server-side session.
 - **Storage abstracted behind an interface.** The `JournalStore` interface lets you swap the backing store (in-memory → SQLite → Postgres) without touching the tool definitions.
 
@@ -68,12 +68,14 @@ All tools are defined with Zod schemas so the MCP SDK generates accurate JSON Sc
 
 ## Auth model
 
-### Bearer token (primary)
+> **Not for production as-is.** The consent page has no login, so the client secret is the only thing protecting the data. In a real app, require the owner's signed-in session on `/oauth/authorize` (the ReflectAI app in this repo does this in `server/oauth.ts`).
 
-Every `POST /mcp` request must include:
+### Bearer token
+
+Every `POST /mcp` request must include an access token issued by `/oauth/token`:
 
 ```
-Authorization: Bearer <MCP_TOKEN>
+Authorization: Bearer <access_token>
 ```
 
 On a 401 the server returns a `WWW-Authenticate` header pointing to the OAuth metadata URL, which allows MCP clients that support dynamic discovery to kick off the OAuth flow automatically.
@@ -83,9 +85,9 @@ On a 401 the server returns a `WWW-Authenticate` header pointing to the OAuth me
 Claude's connector UI only accepts OAuth credentials, not raw bearer tokens. This server implements a minimal Authorization Code flow (RFC 6749) with PKCE (RFC 7636) and server metadata (RFC 8414):
 
 1. Claude fetches `/.well-known/oauth-authorization-server` to discover endpoints.
-2. Claude redirects the user to `/oauth/authorize` — a consent page served by this server.
+2. Claude redirects the user to `/oauth/authorize` — a consent page served by this server. Only Claude's callback URLs (claude.ai, claude.com) and loopback addresses are accepted as `redirect_uri`; add others with `OAUTH_REDIRECT_URIS`. PKCE with S256 is required.
 3. The user clicks **Allow**. The server issues a one-time auth code (5-minute TTL).
-4. Claude exchanges the code at `/oauth/token`. The server validates PKCE and returns `MCP_TOKEN` as the `access_token`.
+4. Claude exchanges the code at `/oauth/token` with the client secret. The server validates PKCE and returns a random `access_token` that expires in one hour.
 5. Claude uses the token as a bearer token on all subsequent `/mcp` calls.
 
 **Credentials to enter in Claude's connector UI:**
@@ -129,7 +131,7 @@ curl -X POST http://localhost:3000/mcp \
 # Should return tool list
 curl -X POST http://localhost:3000/mcp \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your MCP_TOKEN>" \
+  -H "Authorization: Bearer <access_token from /oauth/token>" \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
 
 # OAuth metadata
@@ -153,7 +155,8 @@ The `InMemoryJournalStore` included here is suitable for local development and t
 
 | Variable | Required | Description |
 |---|---|---|
-| `MCP_TOKEN` | ✅ | Bearer token for `/mcp`. Also issued as the OAuth `access_token`. |
+| `MCP_TOKEN` | ✅ | OAuth client secret. Never used as an access token. |
+| `OAUTH_REDIRECT_URIS` | optional | Extra exact redirect URIs to allow, comma-separated. |
 | `MCP_USER_EMAIL` | ✅ | Owner identifier — used as the `userId` passed to `JournalStore`. |
 | `OAUTH_CLIENT_ID` | ✅ | OAuth `client_id` (e.g. `claude`). |
 | `PORT` | optional | HTTP port, defaults to `3000`. |
