@@ -69,3 +69,8 @@ export async function consumeRefreshToken(token: string): Promise<boolean> {
   `);
   return result.rows.length > 0;
 }
+
+/** Deletes every access and refresh token, disconnecting Claude. */
+export async function revokeAllTokens(): Promise<void> {
+  await db.execute(sql`DELETE FROM mcp_oauth_token`);
+}

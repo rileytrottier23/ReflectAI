@@ -44,8 +44,38 @@ export interface CounselorReport {
 
 const MAX_ENTRY_LENGTH = 5000;
 
+// Keeps an entry from closing its own <journal_entry> wrapper early.
 function sanitizeEntryContent(content: string): string {
-  return content.slice(0, MAX_ENTRY_LENGTH);
+  return content.slice(0, MAX_ENTRY_LENGTH).replace(/<\/?journal_entry>/gi, "");
+}
+
+// Safety net that does not depend on the model: if entries contain crisis
+// language, the report always opens with support resources, including when
+// the AI call fails or returns something unusable.
+const CRISIS_PATTERNS: RegExp[] = [
+  /\bsuicid/i,
+  /\bkill(ing)?\s+myself\b/i,
+  /\bend(ing)?\s+(my|it)\s+(life|all)\b/i,
+  /\b(want|wanted|wish)\s+to\s+die\b/i,
+  /\bbetter\s+off\s+dead\b/i,
+  /\bno\s+reason\s+to\s+live\b/i,
+  /\bself[-\s]?harm/i,
+  /\bharm(ing)?\s+myself\b/i,
+  /\boverdose\b/i,
+];
+
+export const CRISIS_NOTE =
+  "Some of what you wrote suggests you may be going through something really hard. You don't have to handle it alone. " +
+  "If you are thinking about harming yourself or are in danger, please call or text 988 (Canada and the US) " +
+  "or your local emergency number now. A doctor, counsellor, or someone you trust can also help. This report is not a substitute for professional care.";
+
+export function entriesMentionCrisis(entries: Array<{ content: string }>): boolean {
+  return entries.some((entry) => CRISIS_PATTERNS.some((pattern) => pattern.test(entry.content)));
+}
+
+function withCrisisNote(detailedAnalysis: string, crisis: boolean): string {
+  if (!crisis || detailedAnalysis.startsWith(CRISIS_NOTE)) return detailedAnalysis;
+  return `${CRISIS_NOTE}\n\n${detailedAnalysis}`;
 }
 
 export interface AnnualCounselorReport {
@@ -73,6 +103,7 @@ export async function generateAnnualCounselorReport(
   }));
 
   const averageHappiness = entries.reduce((sum, entry) => sum + entry.happinessScore, 0) / entries.length;
+  const crisis = entriesMentionCrisis(entries);
 
   const prompt = `You are an experienced licensed counsellor with training in cognitive-behavioural therapy (CBT), acceptance and commitment therapy (ACT), motivational interviewing, and positive psychology. You are writing an annual year-in-review for a client based on their journal entries and self-reported happiness scores (1–10) across ${year}.
 
@@ -129,22 +160,29 @@ Please provide your response as raw JSON only (no markdown, no code fences, no p
     const result = parseJsonObject(extractText(response.content));
 
     return {
-      recommendations: result.recommendations || ["Continue journaling regularly", "Reflect on your growth this year"],
+      recommendations: Array.isArray(result.recommendations) ? result.recommendations : ["Continue journaling regularly", "Reflect on your growth this year"],
       annualScore: Math.max(1, Math.min(10, result.annualScore || Math.round(averageHappiness))),
-      detailedAnalysis: result.detailedAnalysis || "Analysis unavailable for this period. Continue journaling to build insights over time."
+      detailedAnalysis: withCrisisNote(
+        typeof result.detailedAnalysis === "string" && result.detailedAnalysis
+          ? result.detailedAnalysis
+          : "We couldn't generate a full analysis for this period. Please try again later.",
+        crisis
+      )
     };
 
   } catch (error) {
     console.error("Error generating annual counselor report:", error);
     return {
       recommendations: [
-        "Reflect on the moments of growth you experienced this year",
+        "Look back at a few entries from this year and notice what stands out",
         "Identify one habit that supported your wellbeing and continue it",
-        "Consider areas where you want to grow in the coming year",
-        "Celebrate your commitment to self-reflection throughout the year"
+        "Try generating this report again later"
       ],
-      annualScore: Math.round(averageHappiness),
-      detailedAnalysis: `Based on ${entries.length} journal entries across ${year} with an average happiness score of ${averageHappiness.toFixed(1)}/10, your journaling practice this year demonstrates consistent dedication to self-reflection and personal growth. Your commitment to regular journaling provides a meaningful record of your emotional journey throughout the year.`
+      annualScore: Math.max(1, Math.round(averageHappiness)),
+      detailedAnalysis: withCrisisNote(
+        `We couldn't generate your full annual analysis right now. You wrote ${entries.length} journal entries in ${year}, with an average happiness score of ${averageHappiness.toFixed(1)}/10. Please try again later.`,
+        crisis
+      )
     };
   }
 }
@@ -169,6 +207,7 @@ export async function generateCounselorReport(
   }));
 
   const averageHappiness = entries.reduce((sum, entry) => sum + entry.happinessScore, 0) / entries.length;
+  const crisis = entriesMentionCrisis(entries);
 
   const prompt = `You are an experienced licensed counsellor with training in cognitive-behavioural therapy (CBT), acceptance and commitment therapy (ACT), motivational interviewing, and positive psychology. You are writing a monthly reflection for a client based on their journal entries and self-rated happiness scores (1–10).
 
@@ -236,22 +275,29 @@ Respond with raw JSON only (no markdown, no code fences, no prose):
     const result = parseJsonObject(extractText(response.content));
 
     return {
-      recommendations: result.recommendations || ["Continue journaling regularly", "Focus on consistency in your practice"],
+      recommendations: Array.isArray(result.recommendations) ? result.recommendations : ["Continue journaling regularly", "Focus on consistency in your practice"],
       monthlyScore: Math.max(1, Math.min(10, result.monthlyScore || Math.round(averageHappiness))),
-      detailedAnalysis: result.detailedAnalysis || "Analysis unavailable for this period. Continue journaling to build insights over time."
+      detailedAnalysis: withCrisisNote(
+        typeof result.detailedAnalysis === "string" && result.detailedAnalysis
+          ? result.detailedAnalysis
+          : "We couldn't generate a full analysis for this period. Please try again later.",
+        crisis
+      )
     };
 
   } catch (error) {
     console.error("Error generating counselor report:", error);
     return {
       recommendations: [
-        "Continue your regular journaling practice",
-        "Consider exploring themes that emerge in your writing",
+        "Read back over this month's entries and notice what stands out",
         "Notice patterns in your happiness scores",
-        "Celebrate your commitment to self-reflection"
+        "Try generating this report again later"
       ],
-      monthlyScore: Math.round(averageHappiness),
-      detailedAnalysis: `Based on ${entries.length} journal entries with an average happiness score of ${averageHappiness.toFixed(1)}/10, your journaling practice this month demonstrates consistency and self-awareness. Your commitment to regular reflection shows dedication to personal growth and emotional understanding. This consistent practice provides a foundation for deeper insights and continued emotional development. Keep building on this positive foundation as you continue your journaling journey.`
+      monthlyScore: Math.max(1, Math.round(averageHappiness)),
+      detailedAnalysis: withCrisisNote(
+        `We couldn't generate your full monthly analysis right now. You wrote ${entries.length} journal entries this month, with an average happiness score of ${averageHappiness.toFixed(1)}/10. Please try again later.`,
+        crisis
+      )
     };
   }
 }

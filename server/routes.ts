@@ -132,10 +132,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI reports are limited per signed-in user (these run after requireAuth),
+  // so a shared IP doesn't block several people and one person can't get
+  // around the limit by changing networks.
   const aiReportLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
+    keyGenerator: (req: any) => `user:${req.dbUser.id}`,
     message: { message: "You've generated too many reports recently. Please try again in an hour" },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const aiReportDailyLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 20,
+    keyGenerator: (req: any) => `user:${req.dbUser.id}`,
+    message: { message: "You've reached today's report limit. Please try again tomorrow" },
     standardHeaders: true,
     legacyHeaders: false,
   });
@@ -160,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/counselor/report", requireAuth, aiReportLimiter, async (req: any, res) => {
+  app.post("/api/counselor/report", requireAuth, aiReportLimiter, aiReportDailyLimiter, async (req: any, res) => {
     try {
       const userId = req.dbUser.id.toString();
       const { month, year } = req.body;
@@ -180,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/counselor/annual-report", requireAuth, aiReportLimiter, async (req: any, res) => {
+  app.post("/api/counselor/annual-report", requireAuth, aiReportLimiter, aiReportDailyLimiter, async (req: any, res) => {
     try {
       const userId = req.dbUser.id.toString();
       const { year } = req.body;
