@@ -1,7 +1,7 @@
 /**
  * MCP Bearer-token auth middleware.
  *
- * Validates the Authorization: Bearer <MCP_TOKEN> header on every /mcp
+ * Validates the Authorization: Bearer <access token> header on every /mcp
  * request. On failure it returns a 401 with a WWW-Authenticate header that
  * points Claude (or any MCP client) to the OAuth metadata document so it can
  * kick off the OAuth flow automatically.
@@ -11,6 +11,7 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
+import { isValidAccessToken } from "./tokens.js";
 
 export async function mcpAuthMiddleware(
   req: Request,
@@ -24,7 +25,10 @@ export async function mcpAuthMiddleware(
   }
 
   const authHeader = req.headers["authorization"];
-  if (!authHeader || authHeader !== `Bearer ${token}`) {
+  const bearer = typeof authHeader === "string" && authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  if (!bearer || !isValidAccessToken(bearer)) {
     const base = `${req.protocol}://${req.headers.host}`;
     res.setHeader(
       "WWW-Authenticate",

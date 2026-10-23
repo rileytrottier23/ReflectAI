@@ -207,29 +207,33 @@ export default function SpellCheckTextarea({
     }
   }, [contextMenu.visible]);
 
-  // Create highlighted text overlay
+  // Create highlighted text overlay. The text is the user's own journal
+  // entry, so every piece is HTML-escaped before it is placed in the overlay.
   const createHighlightedText = () => {
     if (!value) return '';
 
-    const misspelledWords = getMisspelledWords();
-    let highlightedText = value;
-    let offset = 0;
+    const toHtml = (text: string) =>
+      text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '<br>')
+        .replace(/ /g, '&nbsp;');
 
-    // Process words in reverse order to maintain correct indices
-    for (let i = misspelledWords.length - 1; i >= 0; i--) {
-      const word = misspelledWords[i];
-      const startTag = '<span class="misspelled-word">';
-      const endTag = '</span>';
-      
-      highlightedText = 
-        highlightedText.substring(0, word.startIndex) +
-        startTag +
-        highlightedText.substring(word.startIndex, word.endIndex) +
-        endTag +
-        highlightedText.substring(word.endIndex);
+    const misspelledWords = [...getMisspelledWords()].sort((a, b) => a.startIndex - b.startIndex);
+    let html = '';
+    let cursor = 0;
+
+    for (const word of misspelledWords) {
+      if (word.startIndex < cursor) continue;
+      html += toHtml(value.substring(cursor, word.startIndex));
+      html += '<span class="misspelled-word">' + toHtml(value.substring(word.startIndex, word.endIndex)) + '</span>';
+      cursor = word.endIndex;
     }
 
-    return highlightedText.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+    return html + toHtml(value.substring(cursor));
   };
 
   return (
