@@ -290,6 +290,11 @@ export function createOAuthRouter(): Router {
       return res.status(403).send(notOwnerHtml());
     }
 
+    // Helmet's default Referrer-Policy is no-referrer, which makes browsers
+    // send `Origin: null` on this page's form POST, so isSameOrigin() rejected
+    // every approval with a 403. same-origin keeps the real Origin on the
+    // POST back to us while still sending nothing to other sites.
+    res.setHeader("Referrer-Policy", "same-origin");
     res.send(authorizeHtml({
       clientId: client_id,
       redirectUri: redirect_uri,
