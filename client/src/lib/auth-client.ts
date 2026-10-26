@@ -1,7 +1,11 @@
 import { createAuthClient } from "better-auth/react";
+import { twoFactorClient } from "better-auth/client/plugins";
 
 // Same-origin: Better Auth is served by our Express app at /api/auth.
-export const authClient = createAuthClient();
+// The sign-in page handles the two-factor step itself (see SignInPage).
+export const authClient = createAuthClient({
+  plugins: [twoFactorClient()],
+});
 
 export function useAuth() {
   const { data, isPending } = authClient.useSession();

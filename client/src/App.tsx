@@ -12,7 +12,8 @@ import AnnualReport from "@/pages/annual-report";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Contact from "@/pages/contact";
 import NotFound from "@/pages/not-found";
-import { SignInPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage } from "@/pages/auth";
+import { SignInPage, SignUpPage, ForgotPasswordPage, ResetPasswordPage, TwoFactorPage } from "@/pages/auth";
+import Security from "@/pages/security";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -81,10 +82,12 @@ function App() {
             <Route path="/sign-in" component={() => <GuestRoute component={SignInPage} />} />
             <Route path="/sign-up" component={() => <GuestRoute component={SignUpPage} />} />
             <Route path="/forgot-password" component={() => <GuestRoute component={ForgotPasswordPage} />} />
+            <Route path="/two-factor" component={() => <GuestRoute component={TwoFactorPage} />} />
             <Route path="/reset-password" component={ResetPasswordPage} />
             <Route path="/journal" component={() => <ProtectedRoute component={Journal} />} />
             <Route path="/counselor-reports" component={() => <ProtectedRoute component={CounselorReports} />} />
             <Route path="/annual-report" component={() => <ProtectedRoute component={AnnualReport} />} />
+            <Route path="/security" component={() => <ProtectedRoute component={Security} />} />
             <Route path="/privacy-policy" component={PrivacyPolicy} />
             <Route path="/contact" component={Contact} />
             {/* Legacy routes — redirect to sign-in */}

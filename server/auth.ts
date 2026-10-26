@@ -1,9 +1,10 @@
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { twoFactor } from "better-auth/plugins";
 import { sql } from "drizzle-orm";
 import { db } from "./db";
-import { authUser, authSession, authAccount, authVerification } from "@shared/schema";
+import { authUser, authSession, authAccount, authVerification, authTwoFactor } from "@shared/schema";
 import { sendEmail } from "./email";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -30,6 +31,7 @@ export const auth = betterAuth({
       session: authSession,
       account: authAccount,
       verification: authVerification,
+      twoFactor: authTwoFactor,
     },
   }),
   emailAndPassword: {
@@ -85,6 +87,16 @@ export const auth = betterAuth({
       trustedProviders: ["google"],
     },
   },
+  plugins: [
+    // Optional authenticator-app codes for email/password sign-in, with
+    // single-use backup codes. Google sign-in relies on Google's own 2FA.
+    // allowPasswordless lets Google-only accounts turn it on; accounts that
+    // have a password must still enter it to turn 2FA on or off.
+    twoFactor({
+      issuer: "ReflectAI",
+      allowPasswordless: true,
+    }),
+  ],
 });
 
 /**
@@ -139,5 +151,17 @@ export async function ensureAuthTables(): Promise<void> {
       updated_at timestamp NOT NULL DEFAULT now()
     );
     CREATE INDEX IF NOT EXISTS auth_verification_identifier_idx ON auth_verification (identifier);
+    ALTER TABLE auth_user ADD COLUMN IF NOT EXISTS two_factor_enabled boolean DEFAULT false;
+    CREATE TABLE IF NOT EXISTS auth_two_factor (
+      id text PRIMARY KEY,
+      secret text NOT NULL,
+      backup_codes text NOT NULL,
+      user_id text NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
+      verified boolean DEFAULT true,
+      failed_verification_count integer DEFAULT 0,
+      locked_until timestamp
+    );
+    CREATE INDEX IF NOT EXISTS auth_two_factor_user_id_idx ON auth_two_factor (user_id);
+    CREATE INDEX IF NOT EXISTS auth_two_factor_secret_idx ON auth_two_factor (secret);
   `);
 }

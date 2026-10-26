@@ -46,9 +46,25 @@ export const authUser = pgTable("auth_user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+// Two-factor sign-in (Better Auth twoFactor plugin). The TOTP secret and
+// backup codes are encrypted by Better Auth before they are stored.
+export const authTwoFactor = pgTable("auth_two_factor", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id").notNull().references(() => authUser.id, { onDelete: "cascade" }),
+  verified: boolean("verified").default(true),
+  failedVerificationCount: integer("failed_verification_count").default(0),
+  lockedUntil: timestamp("locked_until"),
+}, (table) => [
+  index("auth_two_factor_user_id_idx").on(table.userId),
+  index("auth_two_factor_secret_idx").on(table.secret),
+]);
 
 export const authSession = pgTable("auth_session", {
   id: text("id").primaryKey(),
