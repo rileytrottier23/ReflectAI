@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Sprout, BookOpen, BarChart3, LogOut, ChevronDown, Calendar, CalendarDays } from "lucide-react";
+import { Sprout, BookOpen, BarChart3, LogOut, ChevronDown, Calendar, CalendarDays, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 
 interface NavigationHeaderProps {
-  currentTab: "journal" | "reports";
+  currentTab: "journal" | "reports" | "security";
 }
 
 export default function NavigationHeader({ currentTab }: NavigationHeaderProps) {
@@ -100,6 +100,17 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                 </div>
               </nav>
               <div className="flex items-center space-x-3">
+                <Link href="/security" className="hidden md:block">
+                  <Button
+                    variant="ghost"
+                    className={`hover:text-beige-100 transition-colors duration-200 font-medium ${
+                      currentTab === "security" ? "text-black bg-white/20" : "text-white"
+                    }`}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Security
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   onClick={handleLogout}
@@ -148,6 +159,17 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
             >
               <CalendarDays className="w-5 h-5 mb-1" />
               <span className="text-xs">Annual</span>
+            </Button>
+          </Link>
+          <Link href="/security">
+            <Button
+              variant="ghost"
+              className={`transition-colors duration-200 font-medium flex flex-col items-center ${
+                currentTab === "security" ? "text-black bg-white/20" : "text-white hover:text-beige-100"
+              }`}
+            >
+              <Shield className="w-5 h-5 mb-1" />
+              <span className="text-xs">Security</span>
             </Button>
           </Link>
         </div>

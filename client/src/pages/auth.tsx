@@ -148,13 +148,17 @@ export function SignInPage() {
     e.preventDefault();
     setPending(true);
     setError(null);
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email,
       password,
       callbackURL: appUrl("/journal"),
     });
     setPending(false);
-    if (!error) {
+    if (!error && data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      // Password was right; the account has two-factor on, so no session
+      // exists yet until a code is entered.
+      setLocation("/two-factor");
+    } else if (!error) {
       setLocation("/journal");
     } else if (error.status === 403) {
       // Better Auth re-sends the verification email on this attempt.
@@ -406,6 +410,89 @@ export function ResetPasswordPage() {
         <p className="text-[0.95rem] text-[#5b6858]">
           <Link href="/forgot-password" className={linkClass}>
             Request a new link
+          </Link>
+        </p>
+      </div>
+    </AuthShell>
+  );
+}
+
+export function TwoFactorPage() {
+  const [, setLocation] = useLocation();
+  const [useBackup, setUseBackup] = useState(false);
+  const [code, setCode] = useState("");
+  const [trustDevice, setTrustDevice] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPending(true);
+    setError(null);
+    const trimmed = code.replace(/\s+/g, "");
+    const { error } = useBackup
+      ? await authClient.twoFactor.verifyBackupCode({ code: trimmed, trustDevice })
+      : await authClient.twoFactor.verifyTotp({ code: trimmed, trustDevice });
+    setPending(false);
+    if (!error) {
+      setLocation("/journal");
+    } else if (error.status === 401) {
+      setError("This sign-in timed out. Please sign in again.");
+    } else {
+      setError(error.message ?? "That code didn't work. Please try again.");
+    }
+  };
+
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-6">
+        <Header
+          title="Enter your code"
+          subtitle={
+            useBackup
+              ? "Enter one of the backup codes you saved when you turned on two-factor."
+              : "Open your authenticator app and enter the 6-digit code for ReflectAI."
+          }
+        />
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          <Field
+            label={useBackup ? "Backup code" : "6-digit code"}
+            inputMode={useBackup ? "text" : "numeric"}
+            autoComplete="one-time-code"
+            autoFocus
+            required
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder={useBackup ? "xxxxx-xxxxx" : "123456"}
+          />
+          <label className="flex items-center gap-2.5 text-sm text-[#2c3a29]">
+            <input
+              type="checkbox"
+              checked={trustDevice}
+              onChange={(e) => setTrustDevice(e.target.checked)}
+              className="h-4 w-4 rounded border-[#cfd9ca] accent-[#4a6741]"
+            />
+            Don&rsquo;t ask again on this device for 30 days
+          </label>
+          <ErrorMessage message={error} />
+          <SubmitButton pending={pending}>Verify</SubmitButton>
+        </form>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          <button
+            type="button"
+            className={linkClass}
+            onClick={() => {
+              setUseBackup((b) => !b);
+              setCode("");
+              setError(null);
+            }}
+          >
+            {useBackup ? "Use your authenticator app instead" : "Lost your phone? Use a backup code"}
+          </button>
+        </p>
+        <p className="text-[0.95rem] text-[#5b6858]">
+          <Link href="/sign-in" className={linkClass}>
+            Back to sign in
           </Link>
         </p>
       </div>
