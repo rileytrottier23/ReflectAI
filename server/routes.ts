@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { requireAuth } from "./middlewares/requireAuth";
 import { generateCounselorReport, generateAnnualCounselorReport } from "./ai-service";
+import { getClaudeUserProfileId } from "./claude-user-profile";
 import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/schema";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
@@ -182,7 +183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const entries = await storage.getUserJournalEntriesByMonth(userId, year, month);
-      const report = await generateCounselorReport(entries, month, year);
+      const userProfileId = await getClaudeUserProfileId(req.dbUser);
+      const report = await generateCounselorReport(entries, month, year, userProfileId);
 
       await storage.saveReport(userId, 'monthly', month, year, report.recommendations, report.monthlyScore, report.detailedAnalysis);
 
@@ -202,7 +204,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const entries = await storage.getUserJournalEntriesByYear(userId, year);
-      const report = await generateAnnualCounselorReport(entries, year);
+      const userProfileId = await getClaudeUserProfileId(req.dbUser);
+      const report = await generateAnnualCounselorReport(entries, year, userProfileId);
 
       await storage.saveReport(userId, 'annual', null, year, report.recommendations, report.annualScore, report.detailedAnalysis);
 

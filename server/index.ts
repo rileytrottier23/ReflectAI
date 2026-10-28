@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth, ensureAuthTables } from "./auth";
+import { ensureUserProfileColumn } from "./claude-user-profile";
 import { ensureMcpTokenTable } from "./mcp-tokens";
 import { assertEncryptionKey } from "./field-crypto";
 import { encryptExistingRows } from "./encrypt-backfill";
@@ -68,6 +69,7 @@ app.use((req, res, next) => {
   assertEncryptionKey();
   await ensureAuthTables();
   await ensureMcpTokenTable();
+  await ensureUserProfileColumn();
   await encryptExistingRows();
   const server = await registerRoutes(app);
 
