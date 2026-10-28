@@ -34,6 +34,9 @@ export const users = pgTable("users", {
   // Password column kept for schema compatibility; Better Auth manages auth.
   // Rows created via JIT provisioning use a sentinel value.
   password: varchar("password", { length: 255 }),
+  // Claude API user profile for this user (see server/claude-user-profile.ts).
+  // Lets Anthropic restrict one misbehaving account instead of the whole app.
+  anthropicUserProfileId: text("anthropic_user_profile_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
