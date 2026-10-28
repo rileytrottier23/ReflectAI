@@ -100,6 +100,7 @@ The application follows a monorepo structure with clear separation between clien
 ### Required Environment Variables
 - `DATABASE_URL` / `NEON_DATABASE_URL`: PostgreSQL connection string
 - `BETTER_AUTH_SECRET`: Random secret (32+ chars) used to sign sessions
+- `JOURNAL_ENCRYPTION_KEY`: 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts journal entries and saved reports at rest (AES-256-GCM, `server/field-crypto.ts`). Required: the server will not start without it. Losing it makes every entry unreadable, so keep a copy outside Railway
 - `BETTER_AUTH_URL`: Public base URL, e.g. `https://reflectai.net`
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: Google OAuth client; redirect URI is `<BETTER_AUTH_URL>/api/auth/callback/google`. Google sign-in is hidden when unset
 - `RESEND_API_KEY` / `EMAIL_FROM`: Sends verification and password-reset emails. When unset, emails are logged instead of sent

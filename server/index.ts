@@ -3,6 +3,8 @@ import helmet from "helmet";
 import { toNodeHandler } from "better-auth/node";
 import { auth, ensureAuthTables } from "./auth";
 import { ensureMcpTokenTable } from "./mcp-tokens";
+import { assertEncryptionKey } from "./field-crypto";
+import { encryptExistingRows } from "./encrypt-backfill";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -62,8 +64,11 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Refuse to start without the journal key rather than fail on every read.
+  assertEncryptionKey();
   await ensureAuthTables();
   await ensureMcpTokenTable();
+  await encryptExistingRows();
   const server = await registerRoutes(app);
 
   // Client errors (4xx, e.g. malformed JSON) keep their message; anything

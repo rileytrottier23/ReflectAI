@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./auth";
+import { mcpWritesEnabled } from "./mcp";
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   consumeRefreshToken,
@@ -88,11 +89,13 @@ function resourceMatches(req: Request, resource: unknown): boolean {
   return resource === `${base}/mcp` || resource === base || resource === `${base}/`;
 }
 
-// Form posts must come from this site's own consent page.
-function isSameOrigin(req: Request): boolean {
+// Form posts must come from this site's own pages. Browsers send Origin on
+// every POST; if it is missing, fall back to the Fetch Metadata header and
+// reject anything that can't be shown to be same-origin.
+export function isSameOrigin(req: Request): boolean {
   const origin = req.headers.origin;
-  if (!origin) return true; // older browsers omit Origin on same-origin form posts
-  return origin === baseUrl(req);
+  if (origin) return origin === baseUrl(req);
+  return req.headers["sec-fetch-site"] === "same-origin";
 }
 
 function messageHtml(title: string, body: string): string {
@@ -140,6 +143,18 @@ function authorizeHtml(params: {
   resource?: string;
 }): string {
   const { clientId, redirectUri, state, codeChallenge, codeChallengeMethod, resource } = params;
+  const permissions = mcpWritesEnabled()
+    ? [
+        "Read and search your journal entries",
+        "Create and edit entries",
+        "Delete entries (Claude asks you first)",
+        "View your mood summaries",
+      ]
+    : [
+        "Read and search your journal entries",
+        "View your mood summaries",
+        "Read-only: Claude can't create, edit or delete entries",
+      ];
   const fields = [
     `<input type="hidden" name="redirect_uri" value="${escHtml(redirectUri)}">`,
     state ? `<input type="hidden" name="state" value="${escHtml(state)}">` : "",
@@ -217,10 +232,7 @@ function authorizeHtml(params: {
     <p><strong>${escHtml(clientId || "Claude")}</strong> is requesting access to your ReflectAI journal.</p>
     <div class="permissions">
       <ul>
-        <li>Read and search your journal entries</li>
-        <li>Create and edit entries</li>
-        <li>Delete entries (Claude asks you first)</li>
-        <li>View your mood summaries</li>
+        ${permissions.map((p) => `<li>${escHtml(p)}</li>`).join("\n        ")}
       </ul>
     </div>
     <form method="POST" action="/oauth/authorize">
@@ -357,6 +369,9 @@ export function createOAuthRouter(): Router {
     const owner = await checkOwner(req);
     if (owner === "signed-out") return res.status(401).send(signInRequiredHtml(req.originalUrl));
     if (owner === "not-owner") return res.status(403).send(notOwnerHtml());
+    // Same reason as the consent page: without this, Helmet's no-referrer
+    // policy makes the Disconnect form send Origin: null and fail with 403.
+    res.setHeader("Referrer-Policy", "same-origin");
     res.send(messageHtml(
       "Claude connection",
       `<p>Disconnecting signs Claude out of your journal right away. You can reconnect from Claude's connector settings.</p>

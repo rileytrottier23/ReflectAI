@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
+        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.issues });
       }
       res.status(500).json({ message: "We couldn't save your journal entry. Please try again" });
     }
@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.errors });
+        return res.status(400).json({ message: "Please check your journal entry and try again", errors: error.issues });
       }
       res.status(500).json({ message: "We couldn't update your journal entry. Please try again" });
     }

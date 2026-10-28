@@ -8,9 +8,22 @@ function todayDate(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+// The connector is read-only unless MCP_ALLOW_WRITES is "true". Read-only
+// means a stolen connector token can read the journal but never change or
+// delete it.
+export function mcpWritesEnabled(): boolean {
+  return process.env.MCP_ALLOW_WRITES?.trim().toLowerCase() === "true";
+}
+
 function createMcpServer(userId: string): McpServer {
   const server = new McpServer({ name: "reflect-journal", version: "1.0.0" });
 
+  if (mcpWritesEnabled()) registerWriteTools(server, userId);
+  registerReadTools(server, userId);
+  return server;
+}
+
+function registerWriteTools(server: McpServer, userId: string): void {
   // ── Tool: create_entry ────────────────────────────────────────────────────
   server.tool(
     "create_entry",
@@ -151,7 +164,9 @@ function createMcpServer(userId: string): McpServer {
       };
     }
   );
+}
 
+function registerReadTools(server: McpServer, userId: string): void {
   // ── Tool: list_recent_entries ─────────────────────────────────────────────
   server.tool(
     "list_recent_entries",
@@ -305,8 +320,6 @@ function createMcpServer(userId: string): McpServer {
       return { content: [{ type: "text" as const, text }] };
     }
   );
-
-  return server;
 }
 
 // Called by the Express route handler for every /mcp request
