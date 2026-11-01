@@ -73,6 +73,18 @@ app.use((req, res, next) => {
   await encryptExistingRows();
   const server = await registerRoutes(app);
 
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // Registered after the static and Vite handlers so it also catches their
+  // errors (e.g. URIError on scanner URLs like /%c0, which Express marks 400);
+  // otherwise Express's default handler prints a full stack trace.
   // Client errors (4xx, e.g. malformed JSON) keep their message; anything
   // else is logged here and the user gets a generic message, so internal
   // details such as database errors never reach the browser.
@@ -88,15 +100,6 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
   // Serve both the API and the client on one port. Reads PORT so the
   // platform's proxy can reach it (Railway assigns its own); 5000 is a
   // fallback for local dev only, not a firewall requirement like on Replit.
@@ -107,5 +110,13 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+  });
+
+  // Railway sends SIGTERM on redeploy and sleep. Exiting cleanly (code 0)
+  // instead of dying on the signal stops npm from logging
+  // "npm error signal SIGTERM" on every restart.
+  process.once("SIGTERM", () => {
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
   });
 })();
