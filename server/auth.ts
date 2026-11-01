@@ -81,6 +81,14 @@ export const auth = betterAuth({
       },
     },
   },
+  advanced: {
+    ipAddress: {
+      // Railway's edge sets X-Real-IP to the connecting client's address.
+      // X-Forwarded-For can carry client-supplied hops, so Better Auth won't
+      // trust it, and every visitor ended up in one shared rate-limit bucket.
+      ipAddressHeaders: ["x-real-ip"],
+    },
+  },
   account: {
     accountLinking: {
       enabled: true,
