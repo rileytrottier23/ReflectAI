@@ -46,7 +46,7 @@ app.use(helmet({
 
 // Better Auth reads the raw request body itself, so it must be mounted
 // BEFORE the body parsers.
-app.all("/api/auth/*", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
