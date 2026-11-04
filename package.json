@@ -109,5 +109,11 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.1.0"
+  },
+  "overrides": {
+    "@tailwindcss/typography": {
+      "postcss-selector-parser": "^6.1.5"
+    },
+    "sucrase": "^3.35.1"
   }
 }
