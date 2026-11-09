@@ -46,6 +46,7 @@ function registerWriteTools(server: McpServer, userId: string): void {
         .optional()
         .describe("Date in YYYY-MM-DD format, defaults to today if omitted"),
     },
+    { title: "Create journal entry", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     async ({ content, happiness_score, date }) => {
       const entryDate = date ?? todayDate();
       const existing = await storage.getJournalEntry(userId, entryDate);
@@ -100,6 +101,7 @@ function registerWriteTools(server: McpServer, userId: string): void {
         .optional()
         .describe("Replacement happiness score from 1 (very low) to 10 (excellent)"),
     },
+    { title: "Update journal entry", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     async ({ date, content, happiness_score }) => {
       if (content === undefined && happiness_score === undefined) {
         return {
@@ -147,6 +149,7 @@ function registerWriteTools(server: McpServer, userId: string): void {
         .literal("DELETE")
         .describe("Must be exactly DELETE, supplied only after the user explicitly confirms permanent deletion"),
     },
+    { title: "Delete journal entry", readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     async ({ date }) => {
       const existing = await storage.getJournalEntry(userId, date);
       if (!existing) {
@@ -180,6 +183,7 @@ function registerReadTools(server: McpServer, userId: string): void {
         .default(5)
         .describe("Number of entries to return (default 5, max 50)"),
     },
+    { title: "List recent entries", readOnlyHint: true, openWorldHint: false },
     async ({ count }) => {
       const all = await storage.getUserJournalEntries(userId);
       const entries = all.slice(0, count);
@@ -205,6 +209,7 @@ function registerReadTools(server: McpServer, userId: string): void {
         .regex(/^\d{4}-\d{2}-\d{2}$/)
         .describe("Date in YYYY-MM-DD format, e.g. 2026-08-13"),
     },
+    { title: "Get journal entry", readOnlyHint: true, openWorldHint: false },
     async ({ date }) => {
       const entry = await storage.getJournalEntry(userId, date);
       if (!entry) {
@@ -243,6 +248,7 @@ function registerReadTools(server: McpServer, userId: string): void {
         .default(10)
         .describe("Maximum number of results to return (default 10)"),
     },
+    { title: "Search journal entries", readOnlyHint: true, openWorldHint: false },
     async ({ query, limit }) => {
       const results = await storage.searchJournalEntries(userId, query, limit);
       if (results.length === 0) {
@@ -280,6 +286,7 @@ function registerReadTools(server: McpServer, userId: string): void {
         .regex(/^\d{4}-\d{2}-\d{2}$/)
         .describe("End date (YYYY-MM-DD, inclusive)"),
     },
+    { title: "Mood summary", readOnlyHint: true, openWorldHint: false },
     async ({ start_date, end_date }) => {
       const entries = await storage.getJournalEntriesInRange(
         userId,
