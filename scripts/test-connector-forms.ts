@@ -288,6 +288,14 @@ async function main() {
 
     const bad = await readJournal("not-a-real-token");
     check("an unknown token is rejected", bad.status === 401, `status ${bad.status}`);
+
+    // Per-user rate limit: 60 requests a minute. Hitting it blocks only that user.
+    const limitedToken = await connectClaude(otherCookie);
+    let lastStatus = 0;
+    for (let i = 0; i < 61; i++) lastStatus = (await readJournal(limitedToken)).status;
+    check("a user over the per-minute limit gets 429", lastStatus === 429, `status ${lastStatus}`);
+    const ownerStill = await readJournal(ownerToken);
+    check("another user's limit doesn't block the owner", ownerStill.status === 200, `status ${ownerStill.status}`);
   } finally {
     server.kill();
   }

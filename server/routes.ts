@@ -246,7 +246,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  app.post("/mcp", mcpAuthMiddleware, async (req, res) => {
+  // Per-user limits on the connector (runs after mcpAuthMiddleware, so the key
+  // is the token's user): one person can't slow the app for everyone else.
+  const mcpLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    keyGenerator: (req: any) => `mcp:${req.mcpUserId}`,
+    message: { error: "rate_limited", error_description: "Too many requests. Try again in a minute." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const mcpDailyLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 2000,
+    keyGenerator: (req: any) => `mcp-day:${req.mcpUserId}`,
+    message: { error: "rate_limited", error_description: "Daily limit reached. Try again tomorrow." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.post("/mcp", mcpAuthMiddleware, mcpLimiter, mcpDailyLimiter, async (req, res) => {
     try {
       await handleMcpRequest(req, res);
     } catch (err) {
