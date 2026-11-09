@@ -8,9 +8,9 @@ import { insertJournalEntrySchema, updateJournalEntrySchema } from "@shared/sche
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { handleMcpRequest } from "./mcp";
-import { createOAuthRouter } from "./oauth";
+import { createOAuthRouter, resolveLegacyOwnerId } from "./oauth";
 import { googleEnabled } from "./auth";
-import { isValidAccessToken } from "./mcp-tokens";
+import { getAccessTokenOwner } from "./mcp-tokens";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -217,14 +217,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ── MCP endpoint (/mcp) ────────────────────────────────────────────────────
   // Auth: Bearer access token issued by /oauth/token (random, expires hourly)
-  // User identity: looks up the local user row by MCP_USER_EMAIL secret
+  // User identity: the user the token was issued to (pre-multi-user tokens
+  // belong to the original owner, MCP_USER_EMAIL)
   const mcpAuthMiddleware = async (req: any, res: any, next: any) => {
     try {
       const header = req.headers["authorization"];
       const token = typeof header === "string" && header.startsWith("Bearer ")
         ? header.slice("Bearer ".length).trim()
         : "";
-      if (!token || !(await isValidAccessToken(token))) {
+      const owner = token ? await getAccessTokenOwner(token) : undefined;
+      if (!owner) {
         const base = `${req.protocol}://${req.headers.host}`;
         res.setHeader(
           "WWW-Authenticate",
@@ -232,16 +234,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         return res.status(401).json({ error: "Unauthorized" });
       }
-      // Resolve the user this MCP server belongs to
-      const email = process.env.MCP_USER_EMAIL;
-      if (!email) {
-        return res.status(503).json({ error: "MCP server not configured" });
+      const userId = owner.userId ?? (await resolveLegacyOwnerId());
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        return res.status(404).json({ error: "No account found for the MCP user. Sign in to the app first." });
-      }
-      req.mcpUserId = user.id.toString();
+      req.mcpUserId = userId;
       next();
     } catch (err) {
       console.error("[mcp] auth error", err);
@@ -249,7 +246,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  app.post("/mcp", mcpAuthMiddleware, async (req, res) => {
+  // Per-user limits on the connector (runs after mcpAuthMiddleware, so the key
+  // is the token's user): one person can't slow the app for everyone else.
+  const mcpLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    keyGenerator: (req: any) => `mcp:${req.mcpUserId}`,
+    message: { error: "rate_limited", error_description: "Too many requests. Try again in a minute." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const mcpDailyLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 2000,
+    keyGenerator: (req: any) => `mcp-day:${req.mcpUserId}`,
+    message: { error: "rate_limited", error_description: "Daily limit reached. Try again tomorrow." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.post("/mcp", mcpAuthMiddleware, mcpLimiter, mcpDailyLimiter, async (req, res) => {
     try {
       await handleMcpRequest(req, res);
     } catch (err) {

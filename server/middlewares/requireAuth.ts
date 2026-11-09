@@ -13,6 +13,32 @@ import { sql } from "drizzle-orm";
  * - JIT-provisions a new row on first authenticated request if none exists.
  * - Sets req.dbUser so route handlers can use req.dbUser.id for DB queries.
  */
+/**
+ * Finds the local users row for a verified email, creating it on first use.
+ * Callers must pass an email Better Auth has verified.
+ */
+export async function findOrCreateLocalUser(email: string) {
+  // Look up local user by email (bridge column)
+  let [dbUser] = await db.select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
+
+  if (!dbUser) {
+    // JIT-provision: create local row on first authenticated request.
+    // Use a sentinel password value since Better Auth owns authentication.
+    const [inserted] = await db
+      .insert(users)
+      .values({ email, password: "__better_auth_managed__" })
+      .onConflictDoNothing()
+      .returning();
+
+    if (inserted) {
+      dbUser = inserted;
+    } else {
+      [dbUser] = await db.select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
+    }
+  }
+  return dbUser;
+}
+
 export async function requireAuth(req: any, res: any, next: any) {
   try {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
@@ -22,24 +48,7 @@ export async function requireAuth(req: any, res: any, next: any) {
       return res.status(401).json({ message: "Please log in to continue" });
     }
 
-    // Look up local user by email (bridge column)
-    let [dbUser] = await db.select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
-
-    if (!dbUser) {
-      // JIT-provision: create local row on first authenticated request.
-      // Use a sentinel password value since Better Auth owns authentication.
-      const [inserted] = await db
-        .insert(users)
-        .values({ email, password: "__better_auth_managed__" })
-        .onConflictDoNothing()
-        .returning();
-
-      if (inserted) {
-        dbUser = inserted;
-      } else {
-        [dbUser] = await db.select().from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
-      }
-    }
+    const dbUser = await findOrCreateLocalUser(email);
 
     if (!dbUser) {
       return res.status(401).json({ message: "Please log in to continue" });

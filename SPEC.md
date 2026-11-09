@@ -18,7 +18,7 @@ Live at https://reflectai.net. Hosted on Railway.
 | Happiness score | 1–10 on every entry |
 | Monthly + yearly reports | Claude finds patterns, cites entries, suggests next steps; reports are saved |
 | Accounts | Email/password with verification, optional Google sign-in (Better Auth) |
-| Claude connection (MCP) | Lets Claude read and write the signed-in user's entries via OAuth |
+| Claude connection (MCP) | Any signed-in user with a verified email can connect Claude to their own journal via OAuth; each token reads only that user's entries. Read-only unless `MCP_ALLOW_WRITES` is on |
 
 ## Must stay true
 - Every read and write is scoped to the signed-in user at the storage layer.

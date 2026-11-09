@@ -7,12 +7,16 @@ import {
   ACCESS_TOKEN_TTL_SECONDS,
   consumeRefreshToken,
   issueTokenPair,
-  revokeAllTokens,
+  revokeUserTokens,
   safeEqual,
 } from "./mcp-tokens";
+import { storage } from "./storage";
+import { findOrCreateLocalUser } from "./middlewares/requireAuth";
 
-// Short-lived authorization codes (5 min TTL, in-memory is fine for single-user)
+// Short-lived authorization codes (5 min TTL, in memory; a restart only
+// means the user clicks Allow again)
 const authCodes = new Map<string, {
+  userId: string;
   expiresAt: number;
   codeChallenge: string;
   redirectUri: string;
@@ -56,17 +60,34 @@ function clientIdMatches(clientId: unknown): boolean {
   return Boolean(expected) && typeof clientId === "string" && safeEqual(clientId, expected);
 }
 
-type OwnerCheck = "owner" | "signed-out" | "not-owner";
+type UserCheck =
+  | { status: "signed-out" }
+  | { status: "unverified" }
+  | { status: "ok"; userId: string; email: string; isLegacyOwner: boolean };
 
-// The MCP connector exposes one person's journal (MCP_USER_EMAIL), so only
-// that person, signed in with a verified email, may approve access.
-async function checkOwner(req: Request): Promise<OwnerCheck> {
-  const ownerEmail = process.env.MCP_USER_EMAIL?.trim().toLowerCase();
+// Any signed-in user with a verified email may connect Claude, and only to
+// their own journal: the code and tokens carry their local user id. The same
+// email bridge as the app (requireAuth) decides whose journal that is.
+async function checkUser(req: Request): Promise<UserCheck> {
   const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
-  if (!session?.user) return "signed-out";
+  if (!session?.user) return { status: "signed-out" };
   const email = session.user.emailVerified ? session.user.email.toLowerCase() : undefined;
-  if (!ownerEmail || email !== ownerEmail) return "not-owner";
-  return "owner";
+  if (!email) return { status: "unverified" };
+  const dbUser = await findOrCreateLocalUser(email);
+  if (!dbUser) return { status: "signed-out" };
+  const ownerEmail = process.env.MCP_USER_EMAIL?.trim().toLowerCase();
+  return { status: "ok", userId: dbUser.id.toString(), email, isLegacyOwner: email === ownerEmail };
+}
+
+/**
+ * Tokens issued before multi-user support carry no user id; they belong to
+ * the original owner (MCP_USER_EMAIL). Returns that owner's local user id.
+ */
+export async function resolveLegacyOwnerId(): Promise<string | undefined> {
+  const email = process.env.MCP_USER_EMAIL;
+  if (!email) return undefined;
+  const user = await storage.getUserByEmail(email);
+  return user ? user.id.toString() : undefined;
 }
 
 // Passes async handler errors to Express's error handler.
@@ -127,14 +148,15 @@ function signInRequiredHtml(retryUrl: string): string {
   );
 }
 
-function notOwnerHtml(): string {
+function unverifiedHtml(): string {
   return messageHtml(
-    "This connector isn't available",
-    "<p>Only the journal owner can connect Claude to this ReflectAI server.</p>"
+    "Verify your email first",
+    "<p>Open the verification email ReflectAI sent you, then come back and try again.</p>"
   );
 }
 
 function authorizeHtml(params: {
+  email: string;
   clientId?: string;
   redirectUri: string;
   state?: string;
@@ -142,7 +164,7 @@ function authorizeHtml(params: {
   codeChallengeMethod?: string;
   resource?: string;
 }): string {
-  const { clientId, redirectUri, state, codeChallenge, codeChallengeMethod, resource } = params;
+  const { email, clientId, redirectUri, state, codeChallenge, codeChallengeMethod, resource } = params;
   const permissions = mcpWritesEnabled()
     ? [
         "Read and search your journal entries",
@@ -242,7 +264,7 @@ function authorizeHtml(params: {
         <button type="submit" name="action" value="allow" class="allow">Allow</button>
       </div>
     </form>
-    <p class="footer">You're signed in as the journal owner. You can disconnect Claude any time at /oauth/connections.</p>
+    <p class="footer">You're signed in as ${escHtml(email)}. Claude only sees this account's journal. You can disconnect Claude any time at /oauth/connections.</p>
   </div>
 </body>
 </html>`;
@@ -294,12 +316,12 @@ export function createOAuthRouter(): Router {
       return res.status(400).send("Invalid resource");
     }
 
-    const owner = await checkOwner(req);
-    if (owner === "signed-out") {
+    const user = await checkUser(req);
+    if (user.status === "signed-out") {
       return res.status(401).send(signInRequiredHtml(req.originalUrl));
     }
-    if (owner === "not-owner") {
-      return res.status(403).send(notOwnerHtml());
+    if (user.status === "unverified") {
+      return res.status(403).send(unverifiedHtml());
     }
 
     // Helmet's default Referrer-Policy is no-referrer, which makes browsers
@@ -308,6 +330,7 @@ export function createOAuthRouter(): Router {
     // POST back to us while still sending nothing to other sites.
     res.setHeader("Referrer-Policy", "same-origin");
     res.send(authorizeHtml({
+      email: user.email,
       clientId: client_id,
       redirectUri: redirect_uri,
       state,
@@ -345,13 +368,13 @@ export function createOAuthRouter(): Router {
       return res.redirect(redirectUrl.toString());
     }
 
-    const owner = await checkOwner(req);
-    if (owner !== "owner") {
-      return res.status(owner === "signed-out" ? 401 : 403).send(notOwnerHtml());
-    }
+    const user = await checkUser(req);
+    if (user.status === "signed-out") return res.status(401).send(signInRequiredHtml("/oauth/connections"));
+    if (user.status === "unverified") return res.status(403).send(unverifiedHtml());
 
     const code = crypto.randomBytes(32).toString("hex");
     authCodes.set(code, {
+      userId: user.userId,
       expiresAt: Date.now() + 5 * 60 * 1000,
       codeChallenge: code_challenge,
       redirectUri: redirect_uri,
@@ -363,12 +386,12 @@ export function createOAuthRouter(): Router {
     res.redirect(redirectUrl.toString());
   }));
 
-  // Owner-only page to disconnect Claude: deletes every MCP access and
-  // refresh token, so Claude must go through the consent page again.
+  // Page to disconnect Claude: deletes the signed-in user's MCP access and
+  // refresh tokens, so Claude must go through the consent page again.
   router.get("/oauth/connections", wrap(async (req, res) => {
-    const owner = await checkOwner(req);
-    if (owner === "signed-out") return res.status(401).send(signInRequiredHtml(req.originalUrl));
-    if (owner === "not-owner") return res.status(403).send(notOwnerHtml());
+    const user = await checkUser(req);
+    if (user.status === "signed-out") return res.status(401).send(signInRequiredHtml(req.originalUrl));
+    if (user.status === "unverified") return res.status(403).send(unverifiedHtml());
     // Same reason as the consent page: without this, Helmet's no-referrer
     // policy makes the Disconnect form send Origin: null and fail with 403.
     res.setHeader("Referrer-Policy", "same-origin");
@@ -381,9 +404,10 @@ export function createOAuthRouter(): Router {
 
   router.post("/oauth/connections/revoke", wrap(async (req, res) => {
     if (!isSameOrigin(req)) return res.status(403).send("Invalid request origin");
-    const owner = await checkOwner(req);
-    if (owner !== "owner") return res.status(owner === "signed-out" ? 401 : 403).send(notOwnerHtml());
-    await revokeAllTokens();
+    const user = await checkUser(req);
+    if (user.status === "signed-out") return res.status(401).send(signInRequiredHtml("/oauth/connections"));
+    if (user.status === "unverified") return res.status(403).send(unverifiedHtml());
+    await revokeUserTokens(user.userId, user.isLegacyOwner);
     res.send(messageHtml("Claude disconnected", "<p>Claude no longer has access to your journal.</p>"));
   }));
 
@@ -411,6 +435,7 @@ export function createOAuthRouter(): Router {
     }
 
     try {
+      let userId: string | undefined;
       if (grant_type === "authorization_code") {
         const stored = typeof code === "string" ? authCodes.get(code) : undefined;
         if (typeof code === "string") authCodes.delete(code); // single use
@@ -426,15 +451,18 @@ export function createOAuthRouter(): Router {
         if (!resourceMatches(req, resource)) {
           return res.status(400).json({ error: "invalid_target" });
         }
+        userId = stored.userId;
       } else if (grant_type === "refresh_token") {
-        if (typeof refresh_token !== "string" || !(await consumeRefreshToken(refresh_token))) {
+        const owner = typeof refresh_token === "string" ? await consumeRefreshToken(refresh_token) : undefined;
+        userId = owner ? (owner.userId ?? (await resolveLegacyOwnerId())) : undefined;
+        if (!userId) {
           return res.status(400).json({ error: "invalid_grant", error_description: "Refresh token expired or invalid" });
         }
       } else {
         return res.status(400).json({ error: "unsupported_grant_type" });
       }
 
-      const { accessToken, refreshToken } = await issueTokenPair();
+      const { accessToken, refreshToken } = await issueTokenPair(userId);
       res.set("Cache-Control", "no-store");
       res.json({
         access_token: accessToken,
