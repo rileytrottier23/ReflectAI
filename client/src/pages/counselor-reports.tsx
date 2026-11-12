@@ -69,7 +69,7 @@ function SavedReportCard({ saved }: { saved: SavedReport }) {
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-sage-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-semibold text-sage-700">{saved.score}</span>
+              <span className="text-sm font-semibold text-sage-800">{saved.score}</span>
             </div>
             <div>
               <p className="font-medium text-black text-sm">{label}</p>
@@ -92,7 +92,7 @@ function SavedReportCard({ saved }: { saved: SavedReport }) {
               <div className="space-y-2">
                 {saved.recommendations.map((rec, i) => (
                   <div key={i} className="flex items-start gap-2 p-2 bg-beige-50 rounded-lg">
-                    <div className="w-5 h-5 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5">{i + 1}</div>
+                    <div className="w-5 h-5 bg-sage-800 text-white rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5">{i + 1}</div>
                     <p className="text-sm text-gray-800">{rec}</p>
                   </div>
                 ))}
@@ -245,7 +245,7 @@ export default function CounselorReports() {
             onClick={() => setActiveTab("generate")}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
               activeTab === "generate"
-                ? "bg-sage-600 text-white shadow-sm"
+                ? "bg-sage-800 text-white shadow-sm"
                 : "text-gray-600 hover:text-gray-900 hover:bg-beige-50"
             }`}
           >
@@ -256,14 +256,14 @@ export default function CounselorReports() {
             onClick={() => setActiveTab("history")}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
               activeTab === "history"
-                ? "bg-sage-600 text-white shadow-sm"
+                ? "bg-sage-800 text-white shadow-sm"
                 : "text-gray-600 hover:text-gray-900 hover:bg-beige-50"
             }`}
           >
             <Clock className="w-4 h-4" />
             Report History
             {savedReports.length > 0 && (
-              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === "history" ? "bg-white/20 text-white" : "bg-sage-100 text-sage-700"}`}>
+              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full font-semibold ${activeTab === "history" ? "bg-white/20 text-white" : "bg-sage-100 text-sage-800"}`}>
                 {savedReports.length}
               </span>
             )}
@@ -326,7 +326,7 @@ export default function CounselorReports() {
                       const isCurrentMonth = selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() === now.getMonth();
                       const isEndOfMonth = now.getDate() >= 28;
                       if (isCurrentMonth && !isEndOfMonth) return <p className="text-amber-600">Reports available at month end (after 28th)</p>;
-                      return <p className="text-sage-600">Report can be generated</p>;
+                      return <p className="text-sage-800">Report can be generated</p>;
                     })()}
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export default function CounselorReports() {
                 <Button
                   onClick={handleGenerateReport}
                   disabled={generateReportMutation.isPending}
-                  className="bg-sage-600 hover:bg-sage-700 text-white"
+                  className="bg-sage-800 hover:bg-sage-900 text-white"
                 >
                   {generateReportMutation.isPending ? (
                     <>
@@ -377,7 +377,7 @@ export default function CounselorReports() {
                     <div className="space-y-3">
                       {report.recommendations.map((recommendation, index) => (
                         <div key={index} className="flex items-start gap-3 p-3 bg-beige-50 rounded-lg">
-                          <div className="w-6 h-6 bg-sage-600 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                          <div className="w-6 h-6 bg-sage-800 text-white rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                             {index + 1}
                           </div>
                           <p className="text-sm text-gray-800">{recommendation}</p>
