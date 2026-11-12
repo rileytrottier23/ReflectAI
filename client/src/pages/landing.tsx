@@ -17,7 +17,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-beige-200">
       {/* Navigation Header */}
-      <header className="bg-sage-600 shadow-sm">
+      <header className="bg-sage-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
@@ -34,7 +34,7 @@ export default function Landing() {
               </Button>
               <Button 
                 onClick={handleRegister}
-                className="bg-white text-sage-700 hover:bg-beige-100 hover:text-sage-800 font-medium px-6"
+                className="bg-white text-sage-800 hover:bg-beige-100 hover:text-sage-900 font-medium px-6"
               >
                 Register
               </Button>
@@ -56,7 +56,7 @@ export default function Landing() {
             
             <Button 
               onClick={handleRegister}
-              className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 text-lg font-medium"
+              className="bg-sage-800 hover:bg-sage-900 text-white px-8 py-3 text-lg font-medium"
             >
               Start Journaling
             </Button>

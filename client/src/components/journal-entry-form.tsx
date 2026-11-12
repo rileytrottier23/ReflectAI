@@ -255,7 +255,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
                 <span>Not great</span>
-                <span className="font-medium text-sage-600">{happinessValue[0]}/10</span>
+                <span className="font-medium text-sage-800">{happinessValue[0]}/10</span>
                 <span>Excellent</span>
               </div>
               
@@ -335,7 +335,7 @@ export default function JournalEntryForm({ selectedDate }: JournalEntryFormProps
               <Button
                 type="submit"
                 disabled={saveMutation.isPending}
-                className="bg-sage-500 hover:bg-sage-600 text-white"
+                className="bg-sage-800 hover:bg-sage-900 text-white"
               >
                 {saveMutation.isPending ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

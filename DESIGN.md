@@ -94,7 +94,7 @@ rounded:
   full: 9999px
 components:
   app-header:
-    backgroundColor: "{colors.primary}"
+    backgroundColor: "{colors.primary-ink}"
     textColor: "{colors.on-primary}"
     height: 80px
   button-primary:
@@ -182,7 +182,7 @@ Values come from `client/src/index.css` (CSS variables), `tailwind.config.ts` an
 
 ReflectAI is a private journal. People write about their day, rate their mood, and get monthly and annual reports from Claude. The screen people spend most time on is the entry form, so the whole app should feel like a quiet notebook: unhurried, warm in its type, and plain in its chrome. Nothing should compete with what the person is writing.
 
-The look is sage green on cool grey, with white cards for content and serif type throughout. Green means "this is ReflectAI" (the header, the sprout mark) and "do this" (the main action). Everything else is black, grey or white.
+The look is sage green on cool grey, with white cards for content and serif type throughout. Green means "this is ReflectAI" (the deep sage header, the sprout mark) and "do this" (the main action). Everything else is black, grey or white.
 
 The app is light only. `index.css` has a `.dark` block, but it is unused shadcn default values and nothing turns it on. Don't build on it. If dark mode is wanted later, design it as a real pair for each token first.
 
@@ -190,8 +190,8 @@ The app is light only. `index.css` has a `.dark` block, but it is unused shadcn 
 
 Two core colours (sage and cool grey) and black text. Leather brown is a held-back third.
 
-- **Sage (#7A9F60, `sage-600`):** the brand fill. The app header, the sprout mark, large icons. Only 3.0:1 against white, so it is for fills and graphics, not for small text.
-- **Deep sage (#496039, `sage-800`):** the text-safe green. Use it for green text on light backgrounds (5.3:1 on the grey page, 7.0:1 on white) and as the fill for primary buttons with white text (7.0:1).
+- **Sage (#7A9F60, `sage-600`):** the graphic green: the sprout mark and icons. Only 3.0:1 against white, so it is for fills and graphics, not for small text.
+- **Deep sage (#496039, `sage-800`):** the text-safe green and the main fill. The header, primary buttons, active tabs and number badges use it with white text (7.0:1). Use it for any green text on light backgrounds (5.3:1 on the grey page, 7.0:1 on white).
 - **Mid sage (#62804D, `sage-700`):** hover for sage fills and accent icons. 4.45:1 on white, so it falls just short of AA for body text. Use it for icons and large text only.
 - **Sage tints (#E0E5DC `sage-100`, #F2F4F0 `sage-50`):** quiet positive backgrounds such as status chips and soft sections.
 - **Cool grey (#E0E0E0, `beige-200` / `--background`):** the page. The `beige-*` utilities are named beige but hold neutral greys. Treat them as greys.
@@ -200,6 +200,8 @@ Two core colours (sage and cool grey) and black text. Leather brown is a held-ba
 - **Black (#000000) and grey-600 (#4B5563):** body text and secondary text. Grey-600 passes AA on every surface here (5.7:1 on the page).
 - **Leather (#A57850, `leather-500` / `--primary`):** shadcn's `--primary` and focus ring, and the mood-slider thumb. Keep it for those. Don't introduce it elsewhere without a reason, since the app's visible brand is sage.
 - **Red (#DC2626):** errors and destructive actions only.
+
+The `sage`, `beige` and `leather` scales are registered in `tailwind.config.ts`, so `bg-`, `text-`, `border-`, `ring-` and `hover:` classes all work for them. Before Nov 2026 only plain `bg-` classes worked, so older code may still carry classes that used to do nothing.
 
 ## Typography
 
@@ -216,7 +218,7 @@ Journal text (the entry textarea and any place an entry is shown back) is Lora 1
 
 Pages sit in a centred 1280px container (`max-w-7xl`) with 16 / 24 / 32px side padding at mobile, tablet and desktop. Text-heavy pages (security, privacy, contact) narrow to 672 to 896px. Spacing follows Tailwind's 4px scale; cards pad at 24px and stack with 24px gaps; page sections separate at 48 to 64px.
 
-The header is 80px tall and full-width sage. On desktop it holds the sprout mark, wordmark and tabs: Journal, Counselor Reports (a dropdown with Monthly and Annual) and Security. Below 768px the tabs move to a second sage bar of icon-and-label buttons. The current tab is black text on a 20% white wash.
+The header is 80px tall and full-width deep sage. On desktop it holds the sprout mark, wordmark and tabs: Journal, Counselor Reports (a dropdown with Monthly and Annual) and Security. Below 768px the tabs move to a second sage bar of icon-and-label buttons. The current tab is black text on a 20% white wash.
 
 ## Elevation & Depth
 
@@ -255,10 +257,6 @@ The code doesn't follow all of this yet. These are the places it differs, so an 
 
 | Where | What it does now | What this file says |
 |---|---|---|
-| Primary buttons (`bg-sage-600 … text-white`) | White on sage-600, 3.0:1 | Deep sage fill, 7.0:1 |
-| Header nav text | White on sage-600 at 14 to 18px, 3.0:1 | Needs a darker header or larger text |
-| Status lines (`text-sage-600`) | 3.0:1 on white | Deep sage |
 | `pages/contact.tsx` | Blue-to-indigo gradient, glass card, its own dark mode | Grey page, white card, sage |
-| `pages/auth.tsx` | 27 hard-coded hexes: its own green (#4A6741, close to deep sage), terracotta links (#C2703D), 44px inputs, coloured button shadow | Use the tokens here; links in deep sage |
-| `pages/privacy-policy.tsx` | Beige-to-sage gradient background | Flat grey page |
+| `pages/auth.tsx` | Hard-coded hexes instead of tokens: its own green (#4A6741, close to deep sage), 44px inputs, coloured button shadow | Use the tokens here |
 | `index.css` comments | Say "beige" and list hexes that don't match the HSL values | Greys; hexes in this file are computed from the HSL |

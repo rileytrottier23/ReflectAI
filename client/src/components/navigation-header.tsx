@@ -38,7 +38,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
   return (
     <>
       {/* Desktop Header */}
-      <header className="bg-sage-500 shadow-sm sticky top-0 z-50">
+      <header className="bg-sage-800 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -78,7 +78,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                       <Link href="/counselor-reports" onClick={() => setReportsOpen(false)}>
                         <button
                           className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors duration-150 ${
-                            isMonthly ? "bg-sage-50 text-sage-700 font-medium" : "text-gray-700 hover:bg-beige-50"
+                            isMonthly ? "bg-sage-50 text-sage-800 font-medium" : "text-gray-700 hover:bg-beige-50"
                           }`}
                         >
                           <Calendar className="w-4 h-4 text-sage-600 flex-shrink-0" />
@@ -88,7 +88,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
                       <Link href="/annual-report" onClick={() => setReportsOpen(false)}>
                         <button
                           className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition-colors duration-150 ${
-                            isAnnual ? "bg-sage-50 text-sage-700 font-medium" : "text-gray-700 hover:bg-beige-50"
+                            isAnnual ? "bg-sage-50 text-sage-800 font-medium" : "text-gray-700 hover:bg-beige-50"
                           }`}
                         >
                           <CalendarDays className="w-4 h-4 text-sage-600 flex-shrink-0" />
@@ -126,7 +126,7 @@ export default function NavigationHeader({ currentTab }: NavigationHeaderProps) 
       </header>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden bg-sage-600 border-t border-sage-400">
+      <nav className="md:hidden bg-sage-800 border-t border-sage-700">
         <div className="flex justify-around py-3">
           <Link href="/journal">
             <Button

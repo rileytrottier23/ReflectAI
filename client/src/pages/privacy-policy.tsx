@@ -27,14 +27,14 @@ function Bullets({ items }: { items: ReactNode[] }) {
 }
 
 const mail = (
-  <a href={`mailto:${CONTACT_EMAIL}`} className="text-sage-700 underline">
+  <a href={`mailto:${CONTACT_EMAIL}`} className="text-sage-800 underline">
     {CONTACT_EMAIL}
   </a>
 );
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-beige-50 to-sage-50">
+    <div className="min-h-screen bg-beige-200">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-6">
           <Link href="/">
@@ -101,10 +101,10 @@ export default function PrivacyPolicy() {
               <p>ReflectAI relies on these providers. Each one processes data only to provide its service to ReflectAI:</p>
               <Bullets
                 items={[
-                  <><strong>Railway</strong> hosts the app and its database in the United States (Virginia). All of the data above is stored there. <a className="text-sage-700 underline" href="https://railway.com/legal/privacy" target="_blank" rel="noreferrer">Railway privacy policy</a></>,
-                  <><strong>Anthropic</strong> provides the AI model (Claude) that writes your reports. When you request a report, the entries for that month or year are sent to Anthropic's API to generate it. Anthropic's commercial terms do not allow it to train its models on this data by default. <a className="text-sage-700 underline" href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noreferrer">Anthropic privacy policy</a></>,
-                  <><strong>Resend</strong> delivers account emails, so it receives your email address and the email's contents. <a className="text-sage-700 underline" href="https://resend.com/legal/privacy-policy" target="_blank" rel="noreferrer">Resend privacy policy</a></>,
-                  <><strong>Google</strong>, only if you choose "Continue with Google", confirms who you are. <a className="text-sage-700 underline" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google privacy policy</a></>,
+                  <><strong>Railway</strong> hosts the app and its database in the United States (Virginia). All of the data above is stored there. <a className="text-sage-800 underline" href="https://railway.com/legal/privacy" target="_blank" rel="noreferrer">Railway privacy policy</a></>,
+                  <><strong>Anthropic</strong> provides the AI model (Claude) that writes your reports. When you request a report, the entries for that month or year are sent to Anthropic's API to generate it. Anthropic's commercial terms do not allow it to train its models on this data by default. <a className="text-sage-800 underline" href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noreferrer">Anthropic privacy policy</a></>,
+                  <><strong>Resend</strong> delivers account emails, so it receives your email address and the email's contents. <a className="text-sage-800 underline" href="https://resend.com/legal/privacy-policy" target="_blank" rel="noreferrer">Resend privacy policy</a></>,
+                  <><strong>Google</strong>, only if you choose "Continue with Google", confirms who you are. <a className="text-sage-800 underline" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google privacy policy</a></>,
                 ]}
               />
               <p>
@@ -142,7 +142,7 @@ export default function PrivacyPolicy() {
                 entries, or have it deleted. Email {mail} and we will respond within 30 days. ReflectAI follows
                 British Columbia's Personal Information Protection Act. If you are not satisfied with our
                 response, you can contact the{" "}
-                <a className="text-sage-700 underline" href="https://www.oipc.bc.ca" target="_blank" rel="noreferrer">
+                <a className="text-sage-800 underline" href="https://www.oipc.bc.ca" target="_blank" rel="noreferrer">
                   Office of the Information and Privacy Commissioner for British Columbia
                 </a>.
               </p>

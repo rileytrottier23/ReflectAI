@@ -144,7 +144,7 @@ export default function Security() {
               <Loader2 className="h-5 w-5 animate-spin text-sage-600" aria-label="Loading" />
             ) : enabled && !setup ? (
               <form onSubmit={turnOff} className="space-y-4">
-                {justEnabled && <p className="font-medium text-sage-700">Two-factor is on. You&rsquo;re all set.</p>}
+                {justEnabled && <p className="font-medium text-sage-800">Two-factor is on. You&rsquo;re all set.</p>}
                 {passwordField}
                 <ErrorText message={error} />
                 <Button type="submit" variant="outline" disabled={pending}>
@@ -186,7 +186,7 @@ export default function Security() {
                     className="max-w-[12rem]"
                   />
                   <ErrorText message={error} />
-                  <Button type="submit" disabled={pending} className="bg-sage-600 hover:bg-sage-700 text-white">
+                  <Button type="submit" disabled={pending} className="bg-sage-800 hover:bg-sage-900 text-white">
                     {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
                     Turn on two-factor
                   </Button>
@@ -196,7 +196,7 @@ export default function Security() {
               <form onSubmit={startSetup} className="space-y-4">
                 {passwordField}
                 <ErrorText message={error} />
-                <Button type="submit" disabled={pending} className="bg-sage-600 hover:bg-sage-700 text-white">
+                <Button type="submit" disabled={pending} className="bg-sage-800 hover:bg-sage-900 text-white">
                   {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
                   Set up two-factor
                 </Button>

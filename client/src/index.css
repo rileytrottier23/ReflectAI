@@ -117,16 +117,6 @@
   .beige-800 { color: hsl(var(--beige-800)); }
   .beige-900 { color: hsl(var(--beige-900)); }
   
-  .bg-beige-50 { background-color: hsl(var(--beige-50)); }
-  .bg-beige-100 { background-color: hsl(var(--beige-100)); }
-  .bg-beige-200 { background-color: hsl(var(--beige-200)); }
-  .bg-beige-300 { background-color: hsl(var(--beige-300)); }
-  .bg-beige-400 { background-color: hsl(var(--beige-400)); }
-  .bg-beige-500 { background-color: hsl(var(--beige-500)); }
-  .bg-beige-600 { background-color: hsl(var(--beige-600)); }
-  .bg-beige-700 { background-color: hsl(var(--beige-700)); }
-  .bg-beige-800 { background-color: hsl(var(--beige-800)); }
-  .bg-beige-900 { background-color: hsl(var(--beige-900)); }
   
   /* Leather color utilities */
   .leather-50 { color: hsl(var(--leather-50)); }
@@ -140,16 +130,6 @@
   .leather-800 { color: hsl(var(--leather-800)); }
   .leather-900 { color: hsl(var(--leather-900)); }
   
-  .bg-leather-50 { background-color: hsl(var(--leather-50)); }
-  .bg-leather-100 { background-color: hsl(var(--leather-100)); }
-  .bg-leather-200 { background-color: hsl(var(--leather-200)); }
-  .bg-leather-300 { background-color: hsl(var(--leather-300)); }
-  .bg-leather-400 { background-color: hsl(var(--leather-400)); }
-  .bg-leather-500 { background-color: hsl(var(--leather-500)); }
-  .bg-leather-600 { background-color: hsl(var(--leather-600)); }
-  .bg-leather-700 { background-color: hsl(var(--leather-700)); }
-  .bg-leather-800 { background-color: hsl(var(--leather-800)); }
-  .bg-leather-900 { background-color: hsl(var(--leather-900)); }
   
   /* Sage color utilities */
   .sage-50 { color: hsl(var(--sage-50)); }
@@ -163,16 +143,6 @@
   .sage-800 { color: hsl(var(--sage-800)); }
   .sage-900 { color: hsl(var(--sage-900)); }
   
-  .bg-sage-50 { background-color: hsl(var(--sage-50)); }
-  .bg-sage-100 { background-color: hsl(var(--sage-100)); }
-  .bg-sage-200 { background-color: hsl(var(--sage-200)); }
-  .bg-sage-300 { background-color: hsl(var(--sage-300)); }
-  .bg-sage-400 { background-color: hsl(var(--sage-400)); }
-  .bg-sage-500 { background-color: hsl(var(--sage-500)); }
-  .bg-sage-600 { background-color: hsl(var(--sage-600)); }
-  .bg-sage-700 { background-color: hsl(var(--sage-700)); }
-  .bg-sage-800 { background-color: hsl(var(--sage-800)); }
-  .bg-sage-900 { background-color: hsl(var(--sage-900)); }
 }
 
 /* Custom slider styling */
