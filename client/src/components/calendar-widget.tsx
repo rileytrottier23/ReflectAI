@@ -141,7 +141,7 @@ export default function CalendarWidget({ selectedDate, onDateSelect }: CalendarW
                   aspect-square flex items-center justify-center text-sm rounded-lg hover:bg-beige-100 
                   transition-colors duration-200 relative
                   ${!day.isCurrentMonth ? 'text-gray-400' : 'text-gray-700'}
-                  ${isSelected ? 'bg-sage-500 text-white hover:bg-sage-600' : ''}
+                  ${isSelected ? 'bg-sage-800 text-white hover:bg-sage-900' : ''}
                   ${isToday && !isSelected ? 'bg-sage-100 text-sage-800' : ''}
                 `}
                 onClick={() => onDateSelect(day.fullDate)}
