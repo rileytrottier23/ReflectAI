@@ -12,7 +12,7 @@ const inputClass =
   "h-11 w-full rounded-xl border border-[#cfd9ca] bg-white px-3.5 text-[0.95rem] text-[#1f2a1d] shadow-[inset_0_1px_2px_rgba(31,51,38,0.04)] outline-none transition-shadow placeholder:text-[#9aa896] hover:border-[#b3c3ab] focus:border-[#4a6741] focus:ring-4 focus:ring-[#4a6741]/15";
 const primaryButtonClass =
   "flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#4a6741] text-[0.95rem] font-semibold text-white shadow-[0_10px_24px_-8px_rgba(74,103,65,0.55)] transition-colors hover:bg-[#3c5535] active:bg-[#334a2d] disabled:cursor-not-allowed disabled:opacity-70";
-const linkClass = "font-semibold text-[#c2703d] hover:text-[#a55a2b]";
+const linkClass = "font-semibold text-[#496039] hover:text-[#314026]";
 
 function useAuthOptions() {
   return useQuery<{ google: boolean }>({
@@ -202,7 +202,7 @@ export function SignInPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Your password"
             action={
-              <Link href="/forgot-password" className="text-sm font-medium text-[#c2703d] hover:text-[#a55a2b]">
+              <Link href="/forgot-password" className="text-sm font-medium text-[#496039] hover:text-[#314026]">
                 Forgot password?
               </Link>
             }
