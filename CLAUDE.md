@@ -2,6 +2,8 @@
 
 Read `SPEC.md` first. It says what this app is, what must stay true, and what we're not building.
 
+Read `DESIGN.md` before any UI change. It explains the tokens in `client/src/index.css` and `tailwind.config.ts`, and lists known gaps not to copy. When you change a style, update `DESIGN.md` in the same commit and run `npx @google/design.md lint DESIGN.md`.
+
 ## How to work with Riley
 - Plan before coding. For anything bigger than a small fix, write a short plan and wait for a yes.
 - If a change isn't in `SPEC.md`, say so and ask whether to update the spec first.
